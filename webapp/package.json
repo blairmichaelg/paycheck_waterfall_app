@@ -7,7 +7,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "test:watch": "vitest --watch"
+    "test:watch": "vitest --watch",
+    "lint": "eslint --ext .ts,.tsx src --max-warnings=0",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css,md}\""
   },
   "dependencies": {
     "react": "^18.2.0",
@@ -19,7 +21,18 @@
     "@vitejs/plugin-react": "^4.0.0",
     "vitest": "^0.34.0",
     "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.4.3",
+    "@testing-library/jest-dom": "^6.0.0",
     "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0"
+    "@types/react-dom": "^18.2.0",
+    "eslint": "^8.51.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-react": "^7.33.2",
+    "prettier": "^2.8.8"
+  }
+  ,
+  "vitest": {
+    "environment": "jsdom",
+    "setupFiles": "./test/setupTests.ts"
   }
 }
