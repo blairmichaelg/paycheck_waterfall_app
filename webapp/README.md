@@ -20,3 +20,8 @@ npm run test
 Notes:
 - The allocation logic is implemented in `src/lib/allocations.ts` and unit-tested with `vitest` in `test/allocations.test.ts`.
 - For MVP, the UI is minimal (demo) and will be expanded to include onboarding, settings, and `I Got Paid` flow.
+
+Import / export
+- Use the Export button in the app sidebar to download your configuration as JSON.
+- Use the Import file input to load a previously exported JSON config.
+
