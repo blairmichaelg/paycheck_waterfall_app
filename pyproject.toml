@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "paycheck_waterfall"
+version = "0.1.0"
+description = "Pure allocation engine for the Paycheck Waterfall app (MVP)"
+authors = [ { name = "Paycheck Waterfall" } ]
+readme = "README.md"
+license = { text = "MIT" }
