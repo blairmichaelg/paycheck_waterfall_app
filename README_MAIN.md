@@ -4,7 +4,7 @@
 
 Perfect for anyone living paycheck-to-paycheck who wants simple, stress-free money management.
 
-🌐 **100% free, no sign-up, runs in your browser**
+🌐 **[Try it now →](https://payflow-app-new.netlify.app)** | 100% free, no sign-up, runs in your browser
 
 ## 💡 Why PayFlow?
 
