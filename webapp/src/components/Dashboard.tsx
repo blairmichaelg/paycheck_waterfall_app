@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { allocatePaycheck } from '../lib/allocations';
 import { trackAction } from '../lib/observability';
+import { trackEvent } from '../lib/analytics';
 import { getThemeColors, type Theme } from '../lib/theme';
 import type { AllocationResult } from '../lib/allocations';
 import type { UserConfig } from '../lib/types';
@@ -69,6 +70,7 @@ export default function Dashboard({
         });
         setLastResult(res);
         onResult?.(res);
+        trackEvent('paycheckCalculations');
         trackAction('run_allocation', { paycheck: parsed, guilt_free: res.guilt_free });
       } catch (err) {
         setError('Calculation failed. Please check your inputs.');

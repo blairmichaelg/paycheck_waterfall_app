@@ -1,6 +1,18 @@
-# PayFlow (Paycheck Waterfall App)
+# PayFlow 💰
 
-**Your guilt-free spending companion** – Personal cashflow planning via a "paycheck waterfall" model. The repository currently ships a browser-only MVP with a modern, positive-first UI while laying the groundwork for a reusable allocation engine that can later power a Python CLI or hosted API.
+**Your guilt-free spending companion** – Stop worrying about every purchase. PayFlow tells you exactly how much you can spend without missing rent, bills, or savings goals.
+
+Perfect for anyone living paycheck-to-paycheck who wants simple, stress-free money management.
+
+🌐 **[Try it now →](https://payflow.netlify.app)** | 100% free, no sign-up, runs in your browser
+
+## 💡 Why PayFlow?
+
+Most budgeting apps are overwhelming. They want you to categorize every transaction, set up complex envelopes, and track everything perfectly. But if you're living paycheck-to-paycheck, you don't need all that—you just need to know:
+
+**"Can I afford this coffee without missing rent?"**
+
+PayFlow answers that question in seconds. Enter your paycheck, add your bills and goals, and instantly see your **guilt-free spending amount**. That's it.
 
 ## ✨ Features
 
@@ -11,6 +23,7 @@
 - **📤 Import/Export**: Back up and restore your configuration as JSON with timestamp-based filenames
 - **♿ Accessible**: WCAG 2.1 AA compliant with keyboard navigation, ARIA labels, and screen reader support
 - **🧪 Well-tested**: Comprehensive test suite covering allocation logic, UI components, and data persistence
+- **🔒 Privacy-first**: No tracking, no ads, no account required—your financial data never leaves your device
 
 ## Repository Layout
 
@@ -47,6 +60,20 @@ The Python workspace is intentionally empty while the allocator is validated in 
 
 ## Roadmap Snapshot
 
-- Validate allocation math and import/export flows fully client-side.
-- Harden UI/UX, add schema validation, and automate CI (see GitHub Projects).
-- Port allocator into Python + expose a FastAPI service for optional syncing.
+- ✅ Validate allocation math and import/export flows fully client-side
+- ✅ Harden UI/UX, add schema validation, and automate CI
+- ✅ Publish the final web app to Netlify
+- 🔜 Extract allocation logic into a shared Python package + REST API backend
+
+## 💬 Feedback & Support
+
+**Found a bug? Have a feature request?**
+- 📧 Email: [feedback@payflow.app](mailto:feedback@payflow.app)
+- 🐛 GitHub Issues: [Report here](https://github.com/blairmichaelg/paycheck_waterfall_app/issues)
+- 💻 Pull Requests: Always welcome!
+
+**Love PayFlow?** Share it with someone who could use guilt-free spending in their life. That's the best support you can give!
+
+---
+
+Made with ❤️ for people living paycheck-to-paycheck. You deserve financial peace, not just spreadsheets.

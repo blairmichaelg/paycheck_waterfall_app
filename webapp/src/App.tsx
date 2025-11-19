@@ -7,6 +7,7 @@ import ConfirmModal from './components/ConfirmModal';
 import { loadConfig, saveConfig, exportConfig, importConfig, clearConfig } from './lib/storage';
 import { trackAction } from './lib/observability';
 import { loadTheme, saveTheme, getThemeColors, type Theme } from './lib/theme';
+import { trackSession, trackEvent } from './lib/analytics';
 import type { AllocationResult } from './lib/allocations';
 import type { UserConfig } from './lib/types';
 
@@ -34,12 +35,16 @@ export default function App() {
     const newTheme: Theme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     saveTheme(newTheme);
+    trackEvent('themeToggles');
     trackAction('toggle_theme', { theme: newTheme });
   };
 
   // Config loaded on mount via useState initializer, no need for redundant useEffect
 
   useEffect(() => {
+    // Track session on app load (privacy-friendly, local only)
+    trackSession();
+
     // handle responsive layout
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleResize);
@@ -59,6 +64,7 @@ export default function App() {
       setConfig(c);
       setLastSavedAt(Date.now());
       showToast('Configuration saved');
+      trackEvent('configSaves');
       trackAction('save_config', {
         bills: c.bills.length,
         goals: c.goals.length,
@@ -227,6 +233,7 @@ export default function App() {
                     a.download = `payflow_config_${new Date().toISOString().split('T')[0]}.json`;
                     a.click();
                     URL.revokeObjectURL(url);
+                    trackEvent('configExports');
                     trackAction('export_config');
                   }}
                   aria-label="Export configuration as JSON file"
@@ -351,6 +358,56 @@ export default function App() {
           }}
           onCancel={() => setConfirmModal({ isOpen: false, action: null })}
         />
+
+        {/* Footer with feedback link */}
+        <footer
+          style={{
+            marginTop: 48,
+            paddingTop: 24,
+            borderTop: `1px solid ${colors.border}`,
+            textAlign: 'center',
+            color: colors.textMuted,
+            fontSize: 14,
+          }}
+        >
+          <p style={{ marginBottom: 12 }}>
+            PayFlow is 100% free, privacy-first, and runs entirely in your browser.
+          </p>
+          <p style={{ marginBottom: 12 }}>
+            <a
+              href="mailto:feedback@payflow.app?subject=PayFlow%20Feedback"
+              style={{
+                color: '#667eea',
+                textDecoration: 'none',
+                fontWeight: 600,
+                transition: 'opacity 0.2s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.7')}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+            >
+              📬 Send Feedback
+            </a>
+            {' · '}
+            <a
+              href="https://github.com/blairmichaelg/paycheck_waterfall_app"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: '#667eea',
+                textDecoration: 'none',
+                fontWeight: 600,
+                transition: 'opacity 0.2s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.7')}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+            >
+              💻 View Source
+            </a>
+          </p>
+          <p style={{ fontSize: 12, opacity: 0.7 }}>
+            Made with ❤️ for people living paycheck to paycheck
+          </p>
+        </footer>
       </div>
     </div>
   );
