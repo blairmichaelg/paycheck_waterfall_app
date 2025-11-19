@@ -1,52 +1,57 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 
 export type ToastProps = {
-  message: string
-  onDismiss: () => void
-  duration?: number
-  variant?: 'success' | 'error' | 'warning' | 'info'
-}
+  message: string;
+  onDismiss: () => void;
+  duration?: number;
+  variant?: 'success' | 'error' | 'warning' | 'info';
+};
 
-export default function Toast({ message, onDismiss, duration = 3000, variant = 'success' }: ToastProps) {
-  const [visible, setVisible] = useState(false)
+export default function Toast({
+  message,
+  onDismiss,
+  duration = 3000,
+  variant = 'success',
+}: ToastProps) {
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     // Trigger animation
-    setTimeout(() => setVisible(true), 10)
-    
+    setTimeout(() => setVisible(true), 10);
+
     // Auto-dismiss
     const t = setTimeout(() => {
-      setVisible(false)
-      setTimeout(onDismiss, 300)
-    }, duration)
-    
-    return () => clearTimeout(t)
-  }, [onDismiss, duration])
+      setVisible(false);
+      setTimeout(onDismiss, 300);
+    }, duration);
+
+    return () => clearTimeout(t);
+  }, [onDismiss, duration]);
 
   const styles = {
     success: {
       background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
       shadow: 'rgba(16, 185, 129, 0.4)',
-      icon: '✓'
+      icon: '✓',
     },
     error: {
       background: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)',
       shadow: 'rgba(220, 38, 38, 0.4)',
-      icon: '✕'
+      icon: '✕',
     },
     warning: {
       background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
       shadow: 'rgba(245, 158, 11, 0.4)',
-      icon: '⚠'
+      icon: '⚠',
     },
     info: {
       background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
       shadow: 'rgba(59, 130, 246, 0.4)',
-      icon: 'ℹ'
-    }
-  }
+      icon: 'ℹ',
+    },
+  };
 
-  const style = styles[variant]
+  const style = styles[variant];
 
   return (
     <div
@@ -68,10 +73,10 @@ export default function Toast({ message, onDismiss, duration = 3000, variant = '
         opacity: visible ? 1 : 0,
         transition: 'all 0.3s ease',
         maxWidth: '90vw',
-        wordBreak: 'break-word'
+        wordBreak: 'break-word',
       }}
     >
       {style.icon} {message}
     </div>
-  )
+  );
 }

@@ -1,7 +1,7 @@
-import React, { useEffect, useId, useState } from 'react'
-import { getThemeColors, type Theme } from '../lib/theme'
-import ConfirmModal from './ConfirmModal'
-import { formatRelativeTime } from '../lib/dateUtils'
+import React, { useEffect, useId, useState } from 'react';
+import { getThemeColors, type Theme } from '../lib/theme';
+import ConfirmModal from './ConfirmModal';
+import { formatRelativeTime } from '../lib/dateUtils';
 import {
   BILL_CADENCES,
   PAY_FREQUENCIES,
@@ -9,123 +9,132 @@ import {
   type UserConfig,
   type Bill,
   type Goal,
-  type BonusIncome
-} from '../lib/types'
+  type BonusIncome,
+} from '../lib/types';
 
 type OnboardingProps = {
-  initial: UserConfig
-  onSave: (c: UserConfig) => void
-  lastSavedAt?: number
-  theme: Theme
-}
+  initial: UserConfig;
+  onSave: (c: UserConfig) => void;
+  lastSavedAt?: number;
+  theme: Theme;
+};
 
 export default function Onboarding({ initial, onSave, lastSavedAt, theme }: OnboardingProps) {
-  const colors = getThemeColors(theme)
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
-  const [bills, setBills] = useState<Bill[]>(() => initial.bills.map((b) => ({ ...b })))
-  const [goals, setGoals] = useState<Goal[]>(() => initial.goals.map((g) => ({ ...g })))
-  const [percentApply, setPercentApply] = useState<UserConfig['settings']['percentApply']>(initial.settings.percentApply)
-  const [payFrequency, setPayFrequency] = useState<UserConfig['settings']['payFrequency']>(initial.settings.payFrequency)
-  const [paycheckMin, setPaycheckMin] = useState(initial.settings.paycheckRange.min)
-  const [paycheckMax, setPaycheckMax] = useState(initial.settings.paycheckRange.max)
-  const [bonuses, setBonuses] = useState<BonusIncome[]>(() => initial.bonuses.map((b) => ({ ...b })))
-  const [error, setError] = useState<string | null>(null)
-  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; type: 'bill' | 'goal' | 'bonus' | null; index: number | null }>({ isOpen: false, type: null, index: null })
-  const percentApplyFieldId = useId()
-  const bonusId = useId()
+  const colors = getThemeColors(theme);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
+  const [bills, setBills] = useState<Bill[]>(() => initial.bills.map((b) => ({ ...b })));
+  const [goals, setGoals] = useState<Goal[]>(() => initial.goals.map((g) => ({ ...g })));
+  const [percentApply, setPercentApply] = useState<UserConfig['settings']['percentApply']>(
+    initial.settings.percentApply
+  );
+  const [payFrequency, setPayFrequency] = useState<UserConfig['settings']['payFrequency']>(
+    initial.settings.payFrequency
+  );
+  const [paycheckMin, setPaycheckMin] = useState(initial.settings.paycheckRange.min);
+  const [paycheckMax, setPaycheckMax] = useState(initial.settings.paycheckRange.max);
+  const [bonuses, setBonuses] = useState<BonusIncome[]>(() =>
+    initial.bonuses.map((b) => ({ ...b }))
+  );
+  const [error, setError] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    type: 'bill' | 'goal' | 'bonus' | null;
+    index: number | null;
+  }>({ isOpen: false, type: null, index: null });
+  const percentApplyFieldId = useId();
+  const bonusId = useId();
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768)
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const nextBillTemplate: Bill = {
     name: '',
     amount: 0,
     cadence: 'monthly',
-    dueDay: 1
-  }
+    dueDay: 1,
+  };
 
   const nextBonusTemplate: BonusIncome = {
     name: '',
     cadence: 'monthly',
     range: { min: 0, max: 0 },
-    recurring: true
-  }
+    recurring: true,
+  };
 
   useEffect(() => {
-    setBills(initial.bills.map((b) => ({ ...nextBillTemplate, ...b })))
-    setGoals(initial.goals.map((g) => ({ ...g })))
-    setPercentApply(initial.settings.percentApply)
-    setPayFrequency(initial.settings.payFrequency)
-    setPaycheckMin(initial.settings.paycheckRange.min)
-    setPaycheckMax(initial.settings.paycheckRange.max)
-    setBonuses(initial.bonuses.map((b) => ({ ...nextBonusTemplate, ...b })))
-  }, [initial])
+    setBills(initial.bills.map((b) => ({ ...nextBillTemplate, ...b })));
+    setGoals(initial.goals.map((g) => ({ ...g })));
+    setPercentApply(initial.settings.percentApply);
+    setPayFrequency(initial.settings.payFrequency);
+    setPaycheckMin(initial.settings.paycheckRange.min);
+    setPaycheckMax(initial.settings.paycheckRange.max);
+    setBonuses(initial.bonuses.map((b) => ({ ...nextBonusTemplate, ...b })));
+  }, [initial]);
 
-  const addBill = () => setBills([...bills, { ...nextBillTemplate }])
-  const addGoal = () => setGoals([...goals, { name: '', type: 'percent', value: 0 }])
-  const addBonus = () => setBonuses([...bonuses, { ...nextBonusTemplate }])
+  const addBill = () => setBills([...bills, { ...nextBillTemplate }]);
+  const addGoal = () => setGoals([...goals, { name: '', type: 'percent', value: 0 }]);
+  const addBonus = () => setBonuses([...bonuses, { ...nextBonusTemplate }]);
 
   const removeBill = (i: number) => {
-    setConfirmModal({ isOpen: true, type: 'bill', index: i })
-  }
+    setConfirmModal({ isOpen: true, type: 'bill', index: i });
+  };
 
   const removeGoal = (i: number) => {
-    setConfirmModal({ isOpen: true, type: 'goal', index: i })
-  }
-  
+    setConfirmModal({ isOpen: true, type: 'goal', index: i });
+  };
+
   const removeBonus = (i: number) => {
-    setConfirmModal({ isOpen: true, type: 'bonus', index: i })
-  }
+    setConfirmModal({ isOpen: true, type: 'bonus', index: i });
+  };
 
   const save = () => {
     // basic validation
     for (const b of bills) {
       if (!b.name || b.name.trim() === '') {
-        setError('All bills must have a name')
-        return
+        setError('All bills must have a name');
+        return;
       }
       if (Number.isNaN(Number(b.amount)) || b.amount < 0) {
-        setError('Bill amounts must be non-negative numbers')
-        return
+        setError('Bill amounts must be non-negative numbers');
+        return;
       }
       if (b.dueDay !== undefined && (b.dueDay < 1 || b.dueDay > 31)) {
-        setError('Bill due day must be between 1 and 31')
-        return
+        setError('Bill due day must be between 1 and 31');
+        return;
       }
     }
     for (const g of goals) {
       if (!g.name || g.name.trim() === '') {
-        setError('All goals must have a name')
-        return
+        setError('All goals must have a name');
+        return;
       }
       if (Number.isNaN(Number(g.value)) || g.value < 0) {
-        setError('Goal values must be non-negative numbers')
-        return
+        setError('Goal values must be non-negative numbers');
+        return;
       }
     }
     for (const bonus of bonuses) {
       if (!bonus.name || bonus.name.trim() === '') {
-        setError('All bonuses must have a name')
-        return
+        setError('All bonuses must have a name');
+        return;
       }
       if (Number.isNaN(Number(bonus.range.min)) || Number.isNaN(Number(bonus.range.max))) {
-        setError('Bonus ranges must be valid numbers')
-        return
+        setError('Bonus ranges must be valid numbers');
+        return;
       }
       if (bonus.range.max < bonus.range.min) {
-        setError('Bonus range max must be ≥ min')
-        return
+        setError('Bonus range max must be ≥ min');
+        return;
       }
     }
     if (paycheckMax < paycheckMin) {
-      setError('Paycheck range max must be ≥ min')
-      return
+      setError('Paycheck range max must be ≥ min');
+      return;
     }
-    setError(null)
+    setError(null);
     const next: UserConfig = {
       ...initial,
       version: CONFIG_VERSION,
@@ -134,7 +143,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
         ...nextBillTemplate,
         ...b,
         amount: Number(b.amount) || 0,
-        dueDay: b.dueDay ? Math.min(31, Math.max(1, Number(b.dueDay))) : undefined
+        dueDay: b.dueDay ? Math.min(31, Math.max(1, Number(b.dueDay))) : undefined,
       })),
       goals: goals.map((g) => ({ ...g, value: Number(g.value) || 0 })),
       bonuses: bonuses.map((bonus) => ({
@@ -142,37 +151,77 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
         ...bonus,
         range: {
           min: Math.max(0, Number(bonus.range.min) || 0),
-          max: Math.max(0, Number(bonus.range.max) || 0)
-        }
+          max: Math.max(0, Number(bonus.range.max) || 0),
+        },
       })),
       settings: {
         percentApply,
         payFrequency,
         paycheckRange: {
           min: Math.max(0, Number(paycheckMin) || 0),
-          max: Math.max(0, Number(paycheckMax) || 0)
-        }
-      }
-    }
-    onSave(next)
-  }
+          max: Math.max(0, Number(paycheckMax) || 0),
+        },
+      },
+    };
+    onSave(next);
+  };
 
   return (
-    <div style={{ background: colors.cardBg, padding: isMobile ? 16 : 24, borderRadius: 16, boxShadow: '0 4px 16px rgba(0,0,0,0.08)', border: `1px solid ${colors.border}`, transition: 'all 0.3s ease' }}>
-      <h3 style={{ margin: '0 0 20px 0', fontSize: isMobile ? 20 : 24, fontWeight: 700, color: colors.textPrimary }}>⚙️ Configuration</h3>
-      {error ? <div style={{ color: colors.error, marginBottom: 16, padding: 12, background: colors.errorBg, borderRadius: 10, fontSize: 14, fontWeight: 500, transition: 'all 0.3s ease' }}>{error}</div> : null}
+    <div
+      style={{
+        background: colors.cardBg,
+        padding: isMobile ? 16 : 24,
+        borderRadius: 16,
+        boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+        border: `1px solid ${colors.border}`,
+        transition: 'all 0.3s ease',
+      }}
+    >
+      <h3
+        style={{
+          margin: '0 0 20px 0',
+          fontSize: isMobile ? 20 : 24,
+          fontWeight: 700,
+          color: colors.textPrimary,
+        }}
+      >
+        ⚙️ Configuration
+      </h3>
+      {error ? (
+        <div
+          style={{
+            color: colors.error,
+            marginBottom: 16,
+            padding: 12,
+            background: colors.errorBg,
+            borderRadius: 10,
+            fontSize: 14,
+            fontWeight: 500,
+            transition: 'all 0.3s ease',
+          }}
+        >
+          {error}
+        </div>
+      ) : null}
       <div style={{ marginBottom: 24 }}>
-        <h4 style={{ margin: '0 0 12px 0', fontSize: 16, fontWeight: 700, color: colors.textPrimary }}>📋 Bills</h4>
+        <h4
+          style={{ margin: '0 0 12px 0', fontSize: 16, fontWeight: 700, color: colors.textPrimary }}
+        >
+          📋 Bills
+        </h4>
         {bills.map((b, i) => (
-          <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
+          <div
+            key={i}
+            style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}
+          >
             <div style={{ display: 'flex', gap: 8 }}>
               <input
                 placeholder="name"
                 value={b.name}
                 onChange={(e) => {
-                  const next = [...bills]
-                  next[i].name = e.target.value
-                  setBills(next)
+                  const next = [...bills];
+                  next[i].name = e.target.value;
+                  setBills(next);
                 }}
                 style={{ flex: 1 }}
               />
@@ -182,22 +231,24 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
                 placeholder="amount"
                 value={b.amount ?? ''}
                 onChange={(e) => {
-                  const next = [...bills]
-                  next[i].amount = e.target.value === '' ? 0 : parseFloat(e.target.value)
-                  setBills(next)
+                  const next = [...bills];
+                  next[i].amount = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                  setBills(next);
                 }}
                 style={{ width: 120 }}
               />
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>Frequency</span>
+                <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                  Frequency
+                </span>
                 <select
                   value={b.cadence}
                   onChange={(e) => {
-                    const next = [...bills]
-                    next[i].cadence = e.target.value as Bill['cadence']
-                    setBills(next)
+                    const next = [...bills];
+                    next[i].cadence = e.target.value as Bill['cadence'];
+                    setBills(next);
                   }}
                 >
                   {BILL_CADENCES.map((cadence) => (
@@ -209,7 +260,9 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
               </label>
               {b.cadence === 'monthly' && (
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>Due day (1-31)</span>
+                  <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                    Due day (1-31)
+                  </span>
                   <input
                     type="number"
                     placeholder="day"
@@ -217,38 +270,74 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
                     min={1}
                     max={31}
                     onChange={(e) => {
-                      const next = [...bills]
-                      const value = e.target.value === '' ? undefined : Number(e.target.value)
-                      next[i].dueDay = value
-                      setBills(next)
+                      const next = [...bills];
+                      const value = e.target.value === '' ? undefined : Number(e.target.value);
+                      next[i].dueDay = value;
+                      setBills(next);
                     }}
                     style={{ width: 80 }}
                   />
                 </label>
               )}
-              <button onClick={() => removeBill(i)} aria-label={`remove-bill-${i}`} style={{ alignSelf: 'flex-end', minHeight: '44px' }}>
+              <button
+                onClick={() => removeBill(i)}
+                aria-label={`remove-bill-${i}`}
+                style={{ alignSelf: 'flex-end', minHeight: '44px' }}
+              >
                 Remove
               </button>
             </div>
           </div>
         ))}
-        <button onClick={addBill} style={{ padding: '8px 16px', background: colors.surfaceBg, border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 500, color: colors.textPrimary, minHeight: '44px', transition: 'background 0.2s ease' }}>+ Add bill</button>
+        <button
+          onClick={addBill}
+          style={{
+            padding: '8px 16px',
+            background: colors.surfaceBg,
+            border: 'none',
+            borderRadius: 8,
+            cursor: 'pointer',
+            fontSize: 14,
+            fontWeight: 500,
+            color: colors.textPrimary,
+            minHeight: '44px',
+            transition: 'background 0.2s ease',
+          }}
+        >
+          + Add bill
+        </button>
       </div>
 
       <div style={{ marginBottom: 24 }}>
-        <h4 style={{ margin: '0 0 12px 0', fontSize: 16, fontWeight: 700, color: colors.textPrimary }}>🎯 Goals</h4>
+        <h4
+          style={{ margin: '0 0 12px 0', fontSize: 16, fontWeight: 700, color: colors.textPrimary }}
+        >
+          🎯 Goals
+        </h4>
         {goals.map((g, i) => (
-          <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
+          <div
+            key={i}
+            style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}
+          >
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-              <input placeholder="name" value={g.name} onChange={(e) => { const next = [...goals]; next[i].name = e.target.value; setGoals(next) }} style={{ flex: 1, minWidth: 150 }} />
+              <input
+                placeholder="name"
+                value={g.name}
+                onChange={(e) => {
+                  const next = [...goals];
+                  next[i].name = e.target.value;
+                  setGoals(next);
+                }}
+                style={{ flex: 1, minWidth: 150 }}
+              />
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>Type</span>
                 <select
                   value={g.type}
                   onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                    const next = [...goals]
-                    next[i].type = e.target.value as Goal['type']
-                    setGoals(next)
+                    const next = [...goals];
+                    next[i].type = e.target.value as Goal['type'];
+                    setGoals(next);
                   }}
                 >
                   <option value="percent">percent</option>
@@ -256,34 +345,87 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
                 </select>
               </label>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>Value</span>
-                <input type="number" step="0.01" placeholder="value" value={g.value ?? ''} onChange={(e) => { const next = [...goals]; next[i].value = e.target.value === '' ? 0 : parseFloat(e.target.value); setGoals(next) }} style={{ width: 100 }} />
+                <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                  Value
+                </span>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="value"
+                  value={g.value ?? ''}
+                  onChange={(e) => {
+                    const next = [...goals];
+                    next[i].value = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                    setGoals(next);
+                  }}
+                  style={{ width: 100 }}
+                />
               </label>
-              <button onClick={() => removeGoal(i)} aria-label={`remove-goal-${i}`} style={{ alignSelf: 'flex-end', minHeight: '44px' }}>Remove</button>
+              <button
+                onClick={() => removeGoal(i)}
+                aria-label={`remove-goal-${i}`}
+                style={{ alignSelf: 'flex-end', minHeight: '44px' }}
+              >
+                Remove
+              </button>
             </div>
           </div>
         ))}
-        <button onClick={addGoal} style={{ padding: '8px 16px', background: colors.surfaceBg, border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 500, color: colors.textPrimary, minHeight: '44px', transition: 'background 0.2s ease' }}>+ Add goal</button>
+        <button
+          onClick={addGoal}
+          style={{
+            padding: '8px 16px',
+            background: colors.surfaceBg,
+            border: 'none',
+            borderRadius: 8,
+            cursor: 'pointer',
+            fontSize: 14,
+            fontWeight: 500,
+            color: colors.textPrimary,
+            minHeight: '44px',
+            transition: 'background 0.2s ease',
+          }}
+        >
+          + Add goal
+        </button>
       </div>
 
       <div style={{ marginBottom: 24 }}>
-        <h4 style={{ margin: '0 0 12px 0', fontSize: 16, fontWeight: 700, color: colors.textPrimary }}>⚙️ Settings</h4>
+        <h4
+          style={{ margin: '0 0 12px 0', fontSize: 16, fontWeight: 700, color: colors.textPrimary }}
+        >
+          ⚙️ Settings
+        </h4>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <label htmlFor={percentApplyFieldId} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>Percent goals apply to</span>
+          <label
+            htmlFor={percentApplyFieldId}
+            style={{ display: 'flex', flexDirection: 'column', gap: 4 }}
+          >
+            <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+              Percent goals apply to
+            </span>
             <select
               id={percentApplyFieldId}
               value={percentApply}
-              onChange={(e) => setPercentApply(e.target.value as UserConfig['settings']['percentApply'])}
+              onChange={(e) =>
+                setPercentApply(e.target.value as UserConfig['settings']['percentApply'])
+              }
             >
               <option value="gross">Gross (whole paycheck)</option>
               <option value="remainder">Remainder after bills</option>
             </select>
           </label>
-          
+
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>Pay frequency</span>
-            <select value={payFrequency} onChange={(e) => setPayFrequency(e.target.value as UserConfig['settings']['payFrequency'])}>
+            <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+              Pay frequency
+            </span>
+            <select
+              value={payFrequency}
+              onChange={(e) =>
+                setPayFrequency(e.target.value as UserConfig['settings']['payFrequency'])
+              }
+            >
               {PAY_FREQUENCIES.map((freq) => (
                 <option key={freq} value={freq}>
                   {freq.replace('_', ' ')}
@@ -291,45 +433,78 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
               ))}
             </select>
           </label>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
+
+          <div
+            style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}
+          >
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>Paycheck range - Min amount</span>
-              <input type="number" step="0.01" placeholder="e.g. 800" value={paycheckMin || ''} onChange={(e) => setPaycheckMin(e.target.value === '' ? 0 : parseFloat(e.target.value))} />
+              <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                Paycheck range - Min amount
+              </span>
+              <input
+                type="number"
+                step="0.01"
+                placeholder="e.g. 800"
+                value={paycheckMin || ''}
+                onChange={(e) =>
+                  setPaycheckMin(e.target.value === '' ? 0 : parseFloat(e.target.value))
+                }
+              />
             </label>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>Paycheck range - Max amount</span>
-              <input type="number" step="0.01" placeholder="e.g. 1200" value={paycheckMax || ''} onChange={(e) => setPaycheckMax(e.target.value === '' ? 0 : parseFloat(e.target.value))} />
+              <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                Paycheck range - Max amount
+              </span>
+              <input
+                type="number"
+                step="0.01"
+                placeholder="e.g. 1200"
+                value={paycheckMax || ''}
+                onChange={(e) =>
+                  setPaycheckMax(e.target.value === '' ? 0 : parseFloat(e.target.value))
+                }
+              />
             </label>
           </div>
         </div>
       </div>
 
       <div style={{ marginBottom: 24 }}>
-        <h4 style={{ margin: '0 0 12px 0', fontSize: 16, fontWeight: 700, color: colors.textPrimary }}>💰 Bonus / Commission Income</h4>
-        {bonuses.length === 0 ? <div style={{ color: colors.textMuted }}>No bonuses configured.</div> : null}
+        <h4
+          style={{ margin: '0 0 12px 0', fontSize: 16, fontWeight: 700, color: colors.textPrimary }}
+        >
+          💰 Bonus / Commission Income
+        </h4>
+        {bonuses.length === 0 ? (
+          <div style={{ color: colors.textMuted }}>No bonuses configured.</div>
+        ) : null}
         {bonuses.map((bonus, i) => (
-          <div key={`${bonusId}-${i}`} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+          <div
+            key={`${bonusId}-${i}`}
+            style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}
+          >
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
               <input
                 type="text"
                 placeholder="name"
                 value={bonus.name}
                 onChange={(e) => {
-                  const next = [...bonuses]
-                  next[i].name = e.target.value
-                  setBonuses(next)
+                  const next = [...bonuses];
+                  next[i].name = e.target.value;
+                  setBonuses(next);
                 }}
                 style={{ flex: 1, minWidth: 150 }}
               />
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>Frequency</span>
+                <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                  Frequency
+                </span>
                 <select
                   value={bonus.cadence}
                   onChange={(e) => {
-                    const next = [...bonuses]
-                    next[i].cadence = e.target.value as BonusIncome['cadence']
-                    setBonuses(next)
+                    const next = [...bonuses];
+                    next[i].cadence = e.target.value as BonusIncome['cadence'];
+                    setBonuses(next);
                   }}
                 >
                   {BILL_CADENCES.map((cadence) => (
@@ -342,31 +517,35 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>Min amount</span>
+                <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                  Min amount
+                </span>
                 <input
                   type="number"
                   step="0.01"
                   placeholder="min"
                   value={bonus.range.min || ''}
                   onChange={(e) => {
-                    const next = [...bonuses]
-                    next[i].range.min = e.target.value === '' ? 0 : parseFloat(e.target.value)
-                    setBonuses(next)
+                    const next = [...bonuses];
+                    next[i].range.min = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                    setBonuses(next);
                   }}
                   style={{ width: 100 }}
                 />
               </label>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>Max amount</span>
+                <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                  Max amount
+                </span>
                 <input
                   type="number"
                   step="0.01"
                   placeholder="max"
                   value={bonus.range.max || ''}
                   onChange={(e) => {
-                    const next = [...bonuses]
-                    next[i].range.max = e.target.value === '' ? 0 : parseFloat(e.target.value)
-                    setBonuses(next)
+                    const next = [...bonuses];
+                    next[i].range.max = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                    setBonuses(next);
                   }}
                   style={{ width: 100 }}
                 />
@@ -376,9 +555,9 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
                   type="checkbox"
                   checked={bonus.recurring}
                   onChange={(e) => {
-                    const next = [...bonuses]
-                    next[i].recurring = e.target.checked
-                    setBonuses(next)
+                    const next = [...bonuses];
+                    next[i].recurring = e.target.checked;
+                    setBonuses(next);
                   }}
                 />
                 Recurring
@@ -387,16 +566,51 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
             </div>
           </div>
         ))}
-        <button onClick={addBonus} style={{ padding: '8px 16px', background: colors.surfaceBg, border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 500, color: colors.textPrimary, minHeight: '44px', transition: 'background 0.2s ease' }}>+ Add bonus</button>
+        <button
+          onClick={addBonus}
+          style={{
+            padding: '8px 16px',
+            background: colors.surfaceBg,
+            border: 'none',
+            borderRadius: 8,
+            cursor: 'pointer',
+            fontSize: 14,
+            fontWeight: 500,
+            color: colors.textPrimary,
+            minHeight: '44px',
+            transition: 'background 0.2s ease',
+          }}
+        >
+          + Add bonus
+        </button>
       </div>
 
       <div style={{ marginTop: 24, paddingTop: 24, borderTop: `2px solid ${colors.border}` }}>
-        <button onClick={save} style={{ padding: '14px 28px', background: colors.successGradient, border: 'none', borderRadius: 12, cursor: 'pointer', fontSize: 16, fontWeight: 700, color: '#fff', boxShadow: '0 6px 20px rgba(16, 185, 129, 0.4)', minHeight: '44px', minWidth: '200px' }}>💾 Save Configuration</button>
+        <button
+          onClick={save}
+          style={{
+            padding: '14px 28px',
+            background: colors.successGradient,
+            border: 'none',
+            borderRadius: 12,
+            cursor: 'pointer',
+            fontSize: 16,
+            fontWeight: 700,
+            color: '#fff',
+            boxShadow: '0 6px 20px rgba(16, 185, 129, 0.4)',
+            minHeight: '44px',
+            minWidth: '200px',
+          }}
+        >
+          💾 Save Configuration
+        </button>
         {lastSavedAt ? (
-          <div style={{ marginTop: 4, fontSize: 12, color: colors.textMuted }}>Last saved {formatRelativeTime(lastSavedAt)}</div>
+          <div style={{ marginTop: 4, fontSize: 12, color: colors.textMuted }}>
+            Last saved {formatRelativeTime(lastSavedAt)}
+          </div>
         ) : null}
       </div>
-      
+
       <ConfirmModal
         isOpen={confirmModal.isOpen}
         title={`Remove ${confirmModal.type || 'item'}?`}
@@ -407,16 +621,16 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
         theme={theme}
         onConfirm={() => {
           if (confirmModal.type === 'bill' && confirmModal.index !== null) {
-            setBills(bills.filter((_, idx) => idx !== confirmModal.index))
+            setBills(bills.filter((_, idx) => idx !== confirmModal.index));
           } else if (confirmModal.type === 'goal' && confirmModal.index !== null) {
-            setGoals(goals.filter((_, idx) => idx !== confirmModal.index))
+            setGoals(goals.filter((_, idx) => idx !== confirmModal.index));
           } else if (confirmModal.type === 'bonus' && confirmModal.index !== null) {
-            setBonuses(bonuses.filter((_, idx) => idx !== confirmModal.index))
+            setBonuses(bonuses.filter((_, idx) => idx !== confirmModal.index));
           }
-          setConfirmModal({ isOpen: false, type: null, index: null })
+          setConfirmModal({ isOpen: false, type: null, index: null });
         }}
         onCancel={() => setConfirmModal({ isOpen: false, type: null, index: null })}
       />
     </div>
-  )
+  );
 }

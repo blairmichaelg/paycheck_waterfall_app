@@ -1,69 +1,115 @@
-import React, { useEffect, useState } from 'react'
-import Header from './components/Header'
-import Onboarding from './components/Onboarding'
-import Dashboard from './components/Dashboard'
-import Toast from './components/Toast'
-import ConfirmModal from './components/ConfirmModal'
-import { loadConfig, saveConfig, exportConfig, importConfig, clearConfig } from './lib/storage'
-import { trackAction } from './lib/observability'
-import { loadTheme, saveTheme, getThemeColors, type Theme } from './lib/theme'
-import type { AllocationResult } from './lib/allocations'
-import type { UserConfig } from './lib/types'
+import React, { useEffect, useState } from 'react';
+import Header from './components/Header';
+import Onboarding from './components/Onboarding';
+import Dashboard from './components/Dashboard';
+import Toast from './components/Toast';
+import ConfirmModal from './components/ConfirmModal';
+import { loadConfig, saveConfig, exportConfig, importConfig, clearConfig } from './lib/storage';
+import { trackAction } from './lib/observability';
+import { loadTheme, saveTheme, getThemeColors, type Theme } from './lib/theme';
+import type { AllocationResult } from './lib/allocations';
+import type { UserConfig } from './lib/types';
 
 export default function App() {
-  const [config, setConfig] = useState<UserConfig>(loadConfig())
-  const [toastState, setToastState] = useState<{ show: boolean; message: string; variant: 'success' | 'error' | 'warning' | 'info' }>({ show: false, message: '', variant: 'success' })
-  const [lastSavedAt, setLastSavedAt] = useState(() => Date.now())
-  const [activeView, setActiveView] = useState<'spend' | 'plan'>('spend')
-  const [lastAllocation, setLastAllocation] = useState<AllocationResult | null>(null)
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
-  const [theme, setTheme] = useState<Theme>(() => loadTheme())
-  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; action: 'clear' | 'import' | null; importData?: string }>({ isOpen: false, action: null })
-  
-  const colors = getThemeColors(theme)
-  
+  const [config, setConfig] = useState<UserConfig>(loadConfig());
+  const [toastState, setToastState] = useState<{
+    show: boolean;
+    message: string;
+    variant: 'success' | 'error' | 'warning' | 'info';
+  }>({ show: false, message: '', variant: 'success' });
+  const [lastSavedAt, setLastSavedAt] = useState(() => Date.now());
+  const [activeView, setActiveView] = useState<'spend' | 'plan'>('spend');
+  const [lastAllocation, setLastAllocation] = useState<AllocationResult | null>(null);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
+  const [theme, setTheme] = useState<Theme>(() => loadTheme());
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    action: 'clear' | 'import' | null;
+    importData?: string;
+  }>({ isOpen: false, action: null });
+
+  const colors = getThemeColors(theme);
+
   const toggleTheme = () => {
-    const newTheme: Theme = theme === 'light' ? 'dark' : 'light'
-    setTheme(newTheme)
-    saveTheme(newTheme)
-    trackAction('toggle_theme', { theme: newTheme })
-  }
+    const newTheme: Theme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    saveTheme(newTheme);
+    trackAction('toggle_theme', { theme: newTheme });
+  };
 
   // Config loaded on mount via useState initializer, no need for redundant useEffect
 
   useEffect(() => {
     // handle responsive layout
-    const handleResize = () => setIsMobile(window.innerWidth <= 768)
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-  const showToast = (message: string, variant: 'success' | 'error' | 'warning' | 'info' = 'success') => {
-    setToastState({ show: true, message, variant })
-  }
+  const showToast = (
+    message: string,
+    variant: 'success' | 'error' | 'warning' | 'info' = 'success'
+  ) => {
+    setToastState({ show: true, message, variant });
+  };
 
   const handleSave = (c: UserConfig) => {
     try {
-      saveConfig(c)
-      setConfig(c)
-      setLastSavedAt(Date.now())
-      showToast('Configuration saved')
-      trackAction('save_config', { bills: c.bills.length, goals: c.goals.length, bonuses: c.bonuses.length })
+      saveConfig(c);
+      setConfig(c);
+      setLastSavedAt(Date.now());
+      showToast('Configuration saved');
+      trackAction('save_config', {
+        bills: c.bills.length,
+        goals: c.goals.length,
+        bonuses: c.bonuses.length,
+      });
     } catch (err) {
-      showToast('Failed to save configuration. Check browser storage.', 'error')
-      console.error('Save failed:', err)
+      showToast('Failed to save configuration. Check browser storage.', 'error');
+      console.error('Save failed:', err);
     }
-  }
+  };
 
   return (
-    <div style={{ minHeight: '100vh', background: colors.bodyBg, padding: isMobile ? '8px' : '20px', transition: 'background 0.3s ease' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', background: colors.cardBg, borderRadius: isMobile ? 16 : 24, padding: isMobile ? '16px' : '32px', boxShadow: '0 20px 60px rgba(0,0,0,0.3)', transition: 'background 0.3s ease', boxSizing: 'border-box', overflow: 'hidden' }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: colors.bodyBg,
+        padding: isMobile ? '8px' : '20px',
+        transition: 'background 0.3s ease',
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1200,
+          margin: '0 auto',
+          background: colors.cardBg,
+          borderRadius: isMobile ? 16 : 24,
+          padding: isMobile ? '16px' : '32px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+          transition: 'background 0.3s ease',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
+        }}
+      >
         <Header lastAllocation={lastAllocation} theme={theme} onToggleTheme={toggleTheme} />
 
-        <nav role="tablist" aria-label="Main navigation" style={{ display: 'flex', gap: 12, marginBottom: 24, background: colors.surfaceBg, padding: 8, borderRadius: 16, transition: 'background 0.3s ease' }}>
+        <nav
+          role="tablist"
+          aria-label="Main navigation"
+          style={{
+            display: 'flex',
+            gap: 12,
+            marginBottom: 24,
+            background: colors.surfaceBg,
+            padding: 8,
+            borderRadius: 16,
+            transition: 'background 0.3s ease',
+          }}
+        >
           {[
             { id: 'spend', label: '💰 I Got Paid' },
-            { id: 'plan', label: '⚙️ Plan & Settings' }
+            { id: 'plan', label: '⚙️ Plan & Settings' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -73,8 +119,8 @@ export default function App() {
               onClick={() => setActiveView(tab.id as 'spend' | 'plan')}
               onKeyDown={(e) => {
                 if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                  e.preventDefault()
-                  setActiveView(activeView === 'spend' ? 'plan' : 'spend')
+                  e.preventDefault();
+                  setActiveView(activeView === 'spend' ? 'plan' : 'spend');
                 }
               }}
               style={{
@@ -89,7 +135,7 @@ export default function App() {
                 fontSize: 15,
                 transition: 'all 0.2s ease',
                 boxShadow: activeView === tab.id ? '0 4px 12px rgba(102, 126, 234, 0.4)' : 'none',
-                minHeight: 44
+                minHeight: 44,
               }}
             >
               {tab.label}
@@ -97,7 +143,13 @@ export default function App() {
           ))}
         </nav>
 
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) 300px', gap: 24 }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) 300px',
+            gap: 24,
+          }}
+        >
           <div
             id={`${activeView}-panel`}
             role="tabpanel"
@@ -105,31 +157,77 @@ export default function App() {
             tabIndex={0}
           >
             {activeView === 'plan' ? (
-              <Onboarding initial={config} onSave={handleSave} lastSavedAt={lastSavedAt} theme={theme} />
+              <Onboarding
+                initial={config}
+                onSave={handleSave}
+                lastSavedAt={lastSavedAt}
+                theme={theme}
+              />
             ) : (
               <Dashboard config={config} onResult={setLastAllocation} theme={theme} />
             )}
           </div>
           <aside aria-label="Sidebar">
-            <div style={{ background: colors.statusGradient, padding: 20, borderRadius: 16, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', color: '#fff' }}>
-              <h4 style={{ marginTop: 0, fontSize: 14, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.9 }}>Status</h4>
-              <div aria-live="polite" style={{ fontSize: 16, fontWeight: 500 }}>{toastState.show && toastState.variant === 'success' ? '✓ Saved' : 'No changes'}</div>
+            <div
+              style={{
+                background: colors.statusGradient,
+                padding: 20,
+                borderRadius: 16,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                color: '#fff',
+              }}
+            >
+              <h4
+                style={{
+                  marginTop: 0,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  opacity: 0.9,
+                }}
+              >
+                Status
+              </h4>
+              <div aria-live="polite" style={{ fontSize: 16, fontWeight: 500 }}>
+                {toastState.show && toastState.variant === 'success' ? '✓ Saved' : 'No changes'}
+              </div>
             </div>
 
-            <div style={{ marginTop: 16, background: colors.cardBg, padding: 20, borderRadius: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', border: `1px solid ${colors.border}`, transition: 'all 0.3s ease' }}>
-              <h4 style={{ marginTop: 0, fontSize: 14, fontWeight: 600, color: colors.textPrimary, marginBottom: 16 }}>Data Management</h4>
+            <div
+              style={{
+                marginTop: 16,
+                background: colors.cardBg,
+                padding: 20,
+                borderRadius: 16,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                border: `1px solid ${colors.border}`,
+                transition: 'all 0.3s ease',
+              }}
+            >
+              <h4
+                style={{
+                  marginTop: 0,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: colors.textPrimary,
+                  marginBottom: 16,
+                }}
+              >
+                Data Management
+              </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <button
                   onClick={() => {
-                  const data = exportConfig()
-                  const blob = new Blob([data], { type: 'application/json' })
-                  const url = URL.createObjectURL(blob)
-                  const a = document.createElement('a')
-                  a.href = url
-                  a.download = `payflow_config_${new Date().toISOString().split('T')[0]}.json`
-                  a.click()
-                  URL.revokeObjectURL(url)
-                  trackAction('export_config')
+                    const data = exportConfig();
+                    const blob = new Blob([data], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `payflow_config_${new Date().toISOString().split('T')[0]}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    trackAction('export_config');
                   }}
                   aria-label="Export configuration as JSON file"
                   style={{
@@ -142,27 +240,35 @@ export default function App() {
                     fontWeight: 500,
                     color: colors.textPrimary,
                     transition: 'all 0.2s ease',
-                    minHeight: 44
+                    minHeight: 44,
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = colors.border }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = colors.surfaceBg }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = colors.border;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = colors.surfaceBg;
+                  }}
                 >
                   📥 Export config
                 </button>
 
-                <label style={{ display: 'flex', flexDirection: 'column', gap: 6, cursor: 'pointer' }}>
-                  <span style={{ fontSize: 14, fontWeight: 500, color: colors.textPrimary }}>📤 Import config</span>
+                <label
+                  style={{ display: 'flex', flexDirection: 'column', gap: 6, cursor: 'pointer' }}
+                >
+                  <span style={{ fontSize: 14, fontWeight: 500, color: colors.textPrimary }}>
+                    📤 Import config
+                  </span>
                   <input
                     type="file"
                     accept="application/json"
                     aria-label="Import configuration from JSON file"
                     style={{ fontSize: 13, minHeight: 44 }}
-                  onChange={async (e) => {
-                    const f = e.target.files && e.target.files[0]
-                    if (!f) return
-                    const text = await f.text()
-                    setConfirmModal({ isOpen: true, action: 'import', importData: text })
-                    e.target.value = '' // Reset file input
+                    onChange={async (e) => {
+                      const f = e.target.files && e.target.files[0];
+                      if (!f) return;
+                      const text = await f.text();
+                      setConfirmModal({ isOpen: true, action: 'import', importData: text });
+                      e.target.value = ''; // Reset file input
                     }}
                   />
                 </label>
@@ -180,10 +286,14 @@ export default function App() {
                     fontWeight: 500,
                     color: colors.error,
                     transition: 'all 0.2s ease',
-                    minHeight: 44
+                    minHeight: 44,
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.8' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = '0.8';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = '1';
+                  }}
                 >
                   🗑️ Clear config
                 </button>
@@ -191,8 +301,14 @@ export default function App() {
             </div>
           </aside>
         </div>
-        {toastState.show ? <Toast message={toastState.message} variant={toastState.variant} onDismiss={() => setToastState({ show: false, message: '', variant: 'success' })} /> : null}
-        
+        {toastState.show ? (
+          <Toast
+            message={toastState.message}
+            variant={toastState.variant}
+            onDismiss={() => setToastState({ show: false, message: '', variant: 'success' })}
+          />
+        ) : null}
+
         <ConfirmModal
           isOpen={confirmModal.isOpen}
           title={confirmModal.action === 'clear' ? 'Clear Configuration?' : 'Import Configuration?'}
@@ -208,31 +324,34 @@ export default function App() {
           onConfirm={() => {
             if (confirmModal.action === 'clear') {
               try {
-                const next = clearConfig()
-                setConfig(next)
-                setLastSavedAt(Date.now())
-                showToast('Configuration cleared')
-                trackAction('clear_config')
+                const next = clearConfig();
+                setConfig(next);
+                setLastSavedAt(Date.now());
+                showToast('Configuration cleared');
+                trackAction('clear_config');
               } catch (err) {
-                showToast('Failed to clear configuration', 'error')
-                console.error('Clear failed:', err)
+                showToast('Failed to clear configuration', 'error');
+                console.error('Clear failed:', err);
               }
             } else if (confirmModal.action === 'import' && confirmModal.importData) {
-              const imported = importConfig(confirmModal.importData)
+              const imported = importConfig(confirmModal.importData);
               if (imported) {
-                setConfig(imported)
-                setLastSavedAt(Date.now())
-                showToast('Configuration imported successfully')
-                trackAction('import_config')
+                setConfig(imported);
+                setLastSavedAt(Date.now());
+                showToast('Configuration imported successfully');
+                trackAction('import_config');
               } else {
-                showToast('Invalid config file. The file may be corrupted or in the wrong format.', 'error')
+                showToast(
+                  'Invalid config file. The file may be corrupted or in the wrong format.',
+                  'error'
+                );
               }
             }
-            setConfirmModal({ isOpen: false, action: null })
+            setConfirmModal({ isOpen: false, action: null });
           }}
           onCancel={() => setConfirmModal({ isOpen: false, action: null })}
         />
       </div>
     </div>
-  )
+  );
 }

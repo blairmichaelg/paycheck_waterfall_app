@@ -7,7 +7,10 @@
 /**
  * Track a user action (no-op stub).
  */
-export function trackAction(_action: string, _details?: Record<string, string | number | boolean>): void {
+export function trackAction(
+  _action: string,
+  _details?: Record<string, string | number | boolean>
+): void {
   // No-op: Observability disabled
   // To enable: implement analytics endpoint integration
 }
@@ -15,7 +18,10 @@ export function trackAction(_action: string, _details?: Record<string, string | 
 /**
  * Track an event (no-op stub).
  */
-export function trackEvent(_event: string, _properties?: Record<string, string | number | boolean>): void {
+export function trackEvent(
+  _event: string,
+  _properties?: Record<string, string | number | boolean>
+): void {
   // No-op: Observability disabled
 }
 
