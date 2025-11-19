@@ -15,15 +15,35 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: webapp/package-lock.json
       - name: Install deps
         working-directory: webapp
-        run: |
-          npm ci
+        run: npm ci
+      - name: Lint
+        working-directory: webapp
+        run: npm run lint
+      - name: Format check
+        working-directory: webapp
+        run: npm run format:check
       - name: Run tests
         working-directory: webapp
-        run: |
-          npm run test --silent
+        run: npm run test --silent
       - name: Build
         working-directory: webapp
+        run: npm run build
+      - name: Upload webapp bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: webapp-dist
+          path: webapp/dist
+
+  deploy-preview:
+    needs: webapp
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Placeholder deploy
         run: |
-          npm run build
+          echo "Attach your hosting provider CLI here (e.g., Vercel, Netlify, Azure Static Web Apps)."
+          echo "This job only runs on main pushes and depends on the tested build artifact."

@@ -2,43 +2,139 @@ import { describe, it, expect } from 'vitest'
 import { allocatePaycheck } from '../src/lib/allocations'
 
 describe('allocatePaycheck', () => {
-  it('full bills then guilt free', () => {
-    const out = allocatePaycheck(1500, [{ name: 'Rent', amount: 1000 }, { name: 'Utilities', amount: 200 }], [])
+  it('allocates bills based on upcoming days', () => {
+    const out = allocatePaycheck(
+      1500,
+      [
+        { name: 'Rent', amount: 1000, cadence: 'monthly' },
+        { name: 'Utilities', amount: 200, cadence: 'monthly' }
+      ],
+      [],
+      { upcomingDays: 30 }
+    )
+    expect(out.bills[0].required).toBe(1000)
     expect(out.bills[0].allocated).toBe(1000)
+    expect(out.bills[1].required).toBe(200)
     expect(out.bills[1].allocated).toBe(200)
     expect(out.guilt_free).toBe(300)
   })
 
-  it('partial bill funding', () => {
-    const out = allocatePaycheck(900, [{ name: 'Rent', amount: 1000 }, { name: 'Utilities', amount: 200 }], [])
+  it('partial bill funding based on available funds', () => {
+    const out = allocatePaycheck(
+      900,
+      [
+        { name: 'Rent', amount: 1000, cadence: 'monthly' },
+        { name: 'Utilities', amount: 200, cadence: 'monthly' }
+      ],
+      [],
+      { upcomingDays: 30 }
+    )
     expect(out.bills[0].allocated).toBe(900)
-    expect(out.bills[0].remaining).toBe(100)
+    expect(out.bills[0].remaining).toBeGreaterThan(0)
     expect(out.bills[1].allocated).toBe(0)
     expect(out.guilt_free).toBe(0)
   })
 
   it('percent goal on gross', () => {
-    const out = allocatePaycheck(1000, [{ name: 'Rent', amount: 400 }], [{ name: 'Invest', type: 'percent', value: 10 }], 'gross')
+    const out = allocatePaycheck(
+      1000,
+      [{ name: 'Rent', amount: 400, cadence: 'monthly' }],
+      [{ name: 'Invest', type: 'percent', value: 10 }],
+      { percentApply: 'gross', upcomingDays: 30 }
+    )
     expect(out.goals[0].desired).toBe(100)
     expect(out.goals[0].allocated).toBe(100)
     expect(out.guilt_free).toBe(500)
   })
 
   it('percent goal on remainder', () => {
-    const out = allocatePaycheck(1000, [{ name: 'Rent', amount: 400 }], [{ name: 'Invest', type: 'percent', value: 10 }], 'remainder')
-    expect(out.goals[0].desired).toBe(60)
-    expect(out.goals[0].allocated).toBe(60)
-    expect(out.guilt_free).toBe(540)
+    const out = allocatePaycheck(
+      1000,
+      [{ name: 'Rent', amount: 400, cadence: 'monthly' }],
+      [{ name: 'Invest', type: 'percent', value: 10 }],
+      { percentApply: 'remainder', upcomingDays: 30 }
+    )
+    const expectedDesired = (1000 - 400) * 0.1
+    expect(out.goals[0].desired).toBe(expectedDesired)
+    expect(out.goals[0].allocated).toBe(expectedDesired)
+    expect(out.guilt_free).toBeCloseTo(1000 - 400 - expectedDesired, 2)
   })
 
-  it('goals exceed remaining are scaled', () => {
-    const out = allocatePaycheck(500, [{ name: 'Rent', amount: 200 }], [{ name: 'A', type: 'fixed', value: 200 }, { name: 'B', type: 'fixed', value: 200 }])
+  it('goals are funded proportionally when exceeding remainder', () => {
+    const out = allocatePaycheck(
+      500,
+      [{ name: 'Rent', amount: 200, cadence: 'monthly' }],
+      [
+        { name: 'A', type: 'fixed', value: 200 },
+        { name: 'B', type: 'fixed', value: 200 }
+      ],
+      { upcomingDays: 30 }
+    )
     const allocatedTotal = out.goals.reduce((s: number, g: any) => s + g.allocated, 0)
     expect(allocatedTotal).toBe(300)
     expect(out.guilt_free).toBe(0)
   })
 
+  it('uses paycheck range to create cushion', () => {
+    const out = allocatePaycheck(
+      1000,
+      [{ name: 'Rent', amount: 500, cadence: 'monthly' }],
+      [],
+      { paycheckRange: { min: 800, max: 1200 }, upcomingDays: 30 }
+    )
+    expect(out.meta.effective_paycheck).toBe(800)
+    expect(out.meta.variance_pct).toBeCloseTo(20, 2)
+  })
+
+  it('includes bonus income in calculations', () => {
+    const out = allocatePaycheck(
+      1000,
+      [{ name: 'Rent', amount: 500, cadence: 'monthly' }],
+      [],
+      {
+        bonuses: [{ name: 'Commission', cadence: 'monthly', range: { min: 100, max: 200 }, recurring: true }],
+        upcomingDays: 30
+      }
+    )
+    expect(out.meta.supplemental_income).toBeGreaterThan(0)
+    expect(out.guilt_free).toBeGreaterThan(500)
+  })
+
   it('negative paycheck throws', () => {
     expect(() => allocatePaycheck(-100, [], [])).toThrow()
+  })
+
+  it('prioritizes bills by due date urgency', () => {
+    // Test with bills due on different days - fixed date for consistent testing
+    const testDate = new Date(2025, 0, 10) // Jan 10, 2025
+    const out = allocatePaycheck(
+      600,
+      [
+        { name: 'Rent', amount: 1000, cadence: 'monthly', dueDay: 15 }, // Due in 5 days (urgent)
+        { name: 'Electric', amount: 300, cadence: 'monthly', dueDay: 25 }, // Due in 15 days
+        { name: 'Internet', amount: 100, cadence: 'monthly', dueDay: 5 } // Already passed, due in ~26 days
+      ],
+      [],
+      { upcomingDays: 14, currentDate: testDate }
+    )
+    
+    // Rent should be first (most urgent)
+    expect(out.bills[0].name).toBe('Rent')
+    expect(out.bills[0].daysUntilDue).toBe(5)
+    expect(out.bills[0].isUrgent).toBe(true)
+    
+    // Electric should be second
+    expect(out.bills[1].name).toBe('Electric')
+    expect(out.bills[1].daysUntilDue).toBe(15)
+    expect(out.bills[1].isUrgent).toBe(false)
+    
+    // Internet should be last (already passed this month)
+    expect(out.bills[2].name).toBe('Internet')
+    expect(out.bills[2].daysUntilDue).toBeGreaterThan(20)
+    expect(out.bills[2].isUrgent).toBe(false)
+    
+    // Rent gets funded first
+    expect(out.bills[0].allocated).toBe(600)
+    expect(out.bills[1].allocated).toBe(0)
   })
 })

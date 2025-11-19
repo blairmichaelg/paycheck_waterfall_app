@@ -1,9 +1,24 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Paycheck Waterfall</title>
+    <meta name="description" content="PayFlow - Your guilt-free spending companion. Smart paycheck allocation with bill tracking and goal management." />
+    <title>PayFlow - Guilt-Free Spending Companion</title>
+    <script>
+      // Prevent theme flash by loading theme before React
+      (function() {
+        const THEME_KEY = 'payflow_theme';
+        const stored = localStorage.getItem(THEME_KEY);
+        if (stored === 'dark') {
+          document.documentElement.style.colorScheme = 'dark';
+        } else if (stored === 'light') {
+          document.documentElement.style.colorScheme = 'light';
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.style.colorScheme = 'dark';
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
