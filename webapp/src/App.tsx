@@ -13,7 +13,7 @@ import { trackSession, trackEvent } from './lib/analytics';
 import { formatCurrency } from './lib/formatters';
 import { allocatePaycheck, type AllocationResult } from './lib/allocations';
 import type { UserConfig } from './lib/types';
-import { getErrorMessage, type ErrorType } from './lib/errorMessages';
+import { getErrorMessage } from './lib/errorMessages';
 
 export default function App() {
   const [config, setConfig] = useState<UserConfig>(() => {

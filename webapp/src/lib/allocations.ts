@@ -91,12 +91,12 @@ function getDaysPerPaycheck(payFrequency?: (typeof PAY_FREQUENCIES)[number]): nu
  * If due date is specified and within the window, returns full amount.
  * Otherwise prorates based on time until next paycheck.
  */
-const getUpcomingNeed = (
+const calculateBillPortionNeeded = (
   amount: number,
   cadence: (typeof BILL_CADENCES)[number] | undefined,
   daysAhead: number,
   daysUntilDue?: number,
-  payFrequency?: (typeof PAY_FREQUENCIES)[number]
+  _payFrequency?: (typeof PAY_FREQUENCIES)[number]
 ): number => {
   // If we have a specific due date and it's within the upcoming period, need full amount
   if (daysUntilDue !== undefined && daysUntilDue <= daysAhead) {
@@ -277,7 +277,6 @@ export function allocatePaycheck(
 
   // ========== PHASE 3: Allocate to Bills (Single Optimized Pass) ==========
   const billsOut: AllocatedBill[] = [];
-  let totalBillsAllocated = 0; // Track cumulative allocation (P2.2: avoid re-reducing)
   
   // First pass: Allocate baseline to bills in priority order
   for (const b of billsWithPriority) {
@@ -285,7 +284,7 @@ export function allocatePaycheck(
     const amount = Number(b.amount ?? 0);
     
     // Calculate required amount for this bill
-    const required = getUpcomingNeed(
+    const required = calculateBillPortionNeeded(
       amount, 
       cadence, 
       daysUntilNextPaycheck, 
@@ -296,7 +295,6 @@ export function allocatePaycheck(
     // Allocate from available baseline funds
     const alloc = Math.min(availableFunds, required);
     availableFunds -= alloc;
-    totalBillsAllocated += alloc;
 
     billsOut.push({
       name: b.name ?? '',
@@ -319,7 +317,6 @@ export function allocatePaycheck(
       bill.allocated += additionalAlloc;
       bill.remaining -= additionalAlloc;
       extraRemaining -= additionalAlloc;
-      totalBillsAllocated += additionalAlloc;
     }
   }
   
@@ -330,7 +327,6 @@ export function allocatePaycheck(
       bill.allocated += additionalAlloc;
       bill.remaining = 0;
       extraRemaining -= additionalAlloc;
-      totalBillsAllocated += additionalAlloc;
     }
   }
   

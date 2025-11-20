@@ -261,7 +261,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
               Add your first bill to get started!
             </div>
             <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6 }}>
-              Don't worry—you can always edit or remove it later. Just add the basics and we'll help you allocate funds!
+              Don&apos;t worry—you can always edit or remove it later. Just add the basics and we&apos;ll help you allocate funds!
             </div>
           </div>
         )}
@@ -410,7 +410,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
               Set your first savings goal!
             </div>
             <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6 }}>
-              Goals help you save automatically. Add a goal as a percentage or fixed amount—we'll handle the math!
+              Goals help you save automatically. Add a goal as a percentage or fixed amount—we&apos;ll handle the math!
             </div>
           </div>
         )}
@@ -640,7 +640,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
               Track bonus income (optional)
             </div>
             <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6 }}>
-              Got tips, commissions, or variable income? Add them here and we'll factor them into your budget!
+              Got tips, commissions, or variable income? Add them here so we can factor them into your budget!
             </div>
           </div>
         )}

@@ -247,7 +247,7 @@ export default function WelcomeModal({
               e.currentTarget.style.boxShadow = '0 4px 16px rgba(16, 185, 129, 0.4)';
             }}
           >
-            Let's Get Started! →
+            Let&apos;s Get Started! →
           </button>
         </div>
 
