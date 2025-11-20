@@ -6,8 +6,10 @@ import {
   userConfigSchema,
   legacyConfigSchemaV1,
 } from './types';
+import type { AllocationResult } from './allocations';
 
 const STORAGE_KEY = 'paycheck_waterfall_config';
+const ALLOCATION_KEY = 'paycheck_waterfall_last_allocation';
 
 const upgradeLegacy = (legacy: LegacyConfigV1): UserConfig => ({
   version: CONFIG_VERSION,
@@ -100,6 +102,37 @@ export function importConfig(json: string): UserConfig | null {
     return config;
   } catch (err) {
     console.warn('importConfig: invalid json', err);
+    return null;
+  }
+}
+
+/**
+ * Save the last allocation result to localStorage.
+ * This persists the guilt-free spending and breakdown across page refreshes.
+ */
+export function saveAllocation(allocation: AllocationResult | null) {
+  try {
+    if (allocation === null) {
+      localStorage.removeItem(ALLOCATION_KEY);
+    } else {
+      localStorage.setItem(ALLOCATION_KEY, JSON.stringify(allocation));
+    }
+  } catch (err) {
+    console.warn('saveAllocation: failed to save allocation', err);
+  }
+}
+
+/**
+ * Load the last allocation result from localStorage.
+ * Returns null if no allocation exists or if parsing fails.
+ */
+export function loadAllocation(): AllocationResult | null {
+  try {
+    const raw = localStorage.getItem(ALLOCATION_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as AllocationResult;
+  } catch (err) {
+    console.warn('loadAllocation: failed to load allocation', err);
     return null;
   }
 }

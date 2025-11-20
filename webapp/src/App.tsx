@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react';
 import Header from './components/Header';
 import Onboarding from './components/Onboarding';
 import Dashboard from './components/Dashboard';
+import Breakdown from './components/Breakdown';
 import Toast from './components/Toast';
 import ConfirmModal from './components/ConfirmModal';
-import { loadConfig, saveConfig, exportConfig, importConfig, clearConfig } from './lib/storage';
+import { loadConfig, saveConfig, exportConfig, importConfig, clearConfig, saveAllocation, loadAllocation } from './lib/storage';
 import { trackAction } from './lib/observability';
 import { loadTheme, saveTheme, getThemeColors, type Theme } from './lib/theme';
 import { trackSession, trackEvent } from './lib/analytics';
-import type { AllocationResult } from './lib/allocations';
+import { formatCurrency } from './lib/formatters';
+import { allocatePaycheck, type AllocationResult } from './lib/allocations';
 import type { UserConfig } from './lib/types';
 
 export default function App() {
@@ -19,8 +21,8 @@ export default function App() {
     variant: 'success' | 'error' | 'warning' | 'info';
   }>({ show: false, message: '', variant: 'success' });
   const [lastSavedAt, setLastSavedAt] = useState(() => Date.now());
-  const [activeView, setActiveView] = useState<'spend' | 'plan'>('spend');
-  const [lastAllocation, setLastAllocation] = useState<AllocationResult | null>(null);
+  const [activeView, setActiveView] = useState<'spend' | 'breakdown' | 'plan'>('spend');
+  const [lastAllocation, setLastAllocation] = useState<AllocationResult | null>(() => loadAllocation());
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
   const [theme, setTheme] = useState<Theme>(() => loadTheme());
   const [confirmModal, setConfirmModal] = useState<{
@@ -40,6 +42,11 @@ export default function App() {
   };
 
   // Config loaded on mount via useState initializer, no need for redundant useEffect
+
+  // Persist allocation result whenever it changes
+  useEffect(() => {
+    saveAllocation(lastAllocation);
+  }, [lastAllocation]);
 
   useEffect(() => {
     // Track session on app load (privacy-friendly, local only)
@@ -73,6 +80,89 @@ export default function App() {
     } catch (err) {
       showToast('Failed to save configuration. Check browser storage.', 'error');
       console.error('Save failed:', err);
+    }
+  };
+
+  const handleQuickPaycheck = (amount: number) => {
+    // Auto-adjust range if paycheck is outside current range
+    const currentRange = config.settings.paycheckRange;
+    let updated = false;
+    let newMin = currentRange.min;
+    let newMax = currentRange.max;
+
+    if (amount < currentRange.min) {
+      newMin = amount;
+      updated = true;
+    }
+    if (amount > currentRange.max) {
+      newMax = amount;
+      updated = true;
+    }
+
+    if (updated) {
+      const updatedConfig = {
+        ...config,
+        settings: {
+          ...config.settings,
+          paycheckRange: { min: newMin, max: newMax },
+        },
+      };
+      saveConfig(updatedConfig);
+      setConfig(updatedConfig);
+      
+      if (newMin !== currentRange.min) {
+        showToast(`Updated min to ${formatCurrency(newMin)}`, 'info');
+      }
+      if (newMax !== currentRange.max) {
+        showToast(`Updated max to ${formatCurrency(newMax)}`, 'info');
+      }
+    }
+
+    // Process the paycheck using Dashboard's allocation logic
+    const settings = updated ? { ...config.settings, paycheckRange: { min: newMin, max: newMax } } : config.settings;
+    const percentApply = settings?.percentApply ?? 'gross';
+    const upcomingDays = settings?.payFrequency === 'weekly'
+      ? 7
+      : settings?.payFrequency === 'monthly'
+      ? 30
+      : 14;
+
+    try {
+      const result = allocatePaycheck(amount, config.bills, config.goals, {
+        percentApply,
+        bonuses: config.bonuses,
+        paycheckRange: settings.paycheckRange,
+        nextPaycheckDate: settings.nextPaycheckDate,
+        upcomingDays,
+      });
+      setLastAllocation(result);
+      setActiveView('spend'); // Switch to main view to see results
+      showToast(`Paycheck allocated! You have ${formatCurrency(result.guilt_free)} guilt-free!`, 'success');
+      trackEvent('paycheckCalculations');
+      trackAction('run_allocation', { paycheck: amount, guilt_free: result.guilt_free });
+    } catch (err) {
+      showToast('Failed to process paycheck', 'error');
+      console.error('Allocation error:', err);
+    }
+  };
+
+  const handleRangeUpdate = (newMin: number, newMax: number) => {
+    const currentRange = config.settings.paycheckRange;
+    const updatedConfig = {
+      ...config,
+      settings: {
+        ...config.settings,
+        paycheckRange: { min: newMin, max: newMax },
+      },
+    };
+    saveConfig(updatedConfig);
+    setConfig(updatedConfig);
+    
+    if (newMin !== currentRange.min) {
+      showToast(`Updated min to ${formatCurrency(newMin)}`, 'info');
+    }
+    if (newMax !== currentRange.max) {
+      showToast(`Updated max to ${formatCurrency(newMax)}`, 'info');
     }
   };
 
@@ -114,7 +204,17 @@ export default function App() {
           }}
         >
           {[
-            { id: 'spend', label: '💰 I Got Paid' },
+            { 
+              id: 'spend', 
+              label: lastAllocation 
+                ? `💚 $${lastAllocation.guilt_free.toFixed(0)} Guilt-Free` 
+                : '💰 I Got Paid' 
+            },
+            { 
+              id: 'breakdown', 
+              label: '🌊 See Waterfall',
+              disabled: !lastAllocation
+            },
             { id: 'plan', label: '⚙️ Plan & Settings' },
           ].map((tab) => (
             <button
@@ -122,26 +222,42 @@ export default function App() {
               role="tab"
               aria-selected={activeView === tab.id}
               aria-controls={`${tab.id}-panel`}
-              onClick={() => setActiveView(tab.id as 'spend' | 'plan')}
+              onClick={() => {
+                if (!('disabled' in tab) || !tab.disabled) {
+                  setActiveView(tab.id as 'spend' | 'breakdown' | 'plan');
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
                   e.preventDefault();
-                  setActiveView(activeView === 'spend' ? 'plan' : 'spend');
+                  // Cycle through enabled tabs
+                  if (lastAllocation) {
+                    const views: Array<'spend' | 'breakdown' | 'plan'> = ['spend', 'breakdown', 'plan'];
+                    const currentIndex = views.indexOf(activeView);
+                    const nextIndex = e.key === 'ArrowRight' 
+                      ? (currentIndex + 1) % views.length
+                      : (currentIndex - 1 + views.length) % views.length;
+                    setActiveView(views[nextIndex]);
+                  } else {
+                    setActiveView(activeView === 'spend' ? 'plan' : 'spend');
+                  }
                 }
               }}
+              disabled={'disabled' in tab && tab.disabled}
               style={{
                 flex: 1,
                 padding: '12px 20px',
                 borderRadius: 12,
                 border: 'none',
                 background: activeView === tab.id ? colors.primaryGradient : 'transparent',
-                color: activeView === tab.id ? '#fff' : colors.textSecondary,
-                cursor: 'pointer',
+                color: ('disabled' in tab && tab.disabled) ? colors.textMuted : (activeView === tab.id ? '#fff' : colors.textSecondary),
+                cursor: ('disabled' in tab && tab.disabled) ? 'not-allowed' : 'pointer',
                 fontWeight: activeView === tab.id ? 600 : 500,
                 fontSize: 15,
                 transition: 'all 0.2s ease',
                 boxShadow: activeView === tab.id ? '0 4px 12px rgba(102, 126, 234, 0.4)' : 'none',
                 minHeight: 44,
+                opacity: ('disabled' in tab && tab.disabled) ? 0.5 : 1,
               }}
             >
               {tab.label}
@@ -168,9 +284,21 @@ export default function App() {
                 onSave={handleSave}
                 lastSavedAt={lastSavedAt}
                 theme={theme}
+                guiltFree={lastAllocation?.guilt_free}
+                onNewPaycheck={handleQuickPaycheck}
               />
+            ) : activeView === 'breakdown' ? (
+              lastAllocation ? (
+                <Breakdown allocation={lastAllocation} config={config} theme={theme} onNewPaycheck={handleQuickPaycheck} />
+              ) : (
+                <div style={{ padding: 48, textAlign: 'center', color: colors.textMuted }}>
+                  <div style={{ fontSize: 48, marginBottom: 16 }}>💰</div>
+                  <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>No results yet!</div>
+                  <div style={{ fontSize: 14 }}>Go to &ldquo;I Got Paid&rdquo; and enter your paycheck amount first.</div>
+                </div>
+              )
             ) : (
-              <Dashboard config={config} onResult={setLastAllocation} theme={theme} />
+              <Dashboard config={config} onResult={setLastAllocation} theme={theme} initialResult={lastAllocation} onRangeUpdate={handleRangeUpdate} />
             )}
           </div>
           <aside aria-label="Sidebar">
@@ -333,6 +461,7 @@ export default function App() {
               try {
                 const next = clearConfig();
                 setConfig(next);
+                setLastAllocation(null); // Clear allocation result too
                 setLastSavedAt(Date.now());
                 showToast('Configuration cleared');
                 trackAction('clear_config');
@@ -405,7 +534,7 @@ export default function App() {
             </a>
           </p>
           <p style={{ fontSize: 12, opacity: 0.7 }}>
-            Made with ❤️ for people living paycheck to paycheck
+            Because we all deserve peace
           </p>
         </footer>
       </div>
