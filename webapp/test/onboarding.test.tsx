@@ -21,17 +21,22 @@ describe('Onboarding', () => {
     const onSave = vi.fn()
     render(<Onboarding initial={initial} onSave={onSave} theme="light" />)
 
-    // add bill
-    fireEvent.click(screen.getByText(/Add bill/))
-    const nameInput = screen.getAllByPlaceholderText('name')[0]
+    // Bills section should start expanded, so we can add directly
+    fireEvent.click(screen.getByText('+ Add bill'))
+    const billInputs = screen.getAllByPlaceholderText('name')
+    const nameInput = billInputs[0]
     const amountInput = screen.getAllByPlaceholderText('amount')[0]
     fireEvent.change(nameInput, { target: { value: 'Rent' } })
     fireEvent.change(amountInput, { target: { value: '1200' } })
 
-    // add goal
-    fireEvent.click(screen.getByText(/Add goal/))
-    const goalName = screen.getAllByPlaceholderText('name')[1]
-    const goalValue = screen.getAllByPlaceholderText('value')[0]
+    // Expand goals section to add a goal
+    const goalsHeader = screen.getByText(/🎯 Goals/)
+    fireEvent.click(goalsHeader)
+    
+    fireEvent.click(screen.getByText('+ Add goal'))
+    const goalInputs = screen.getAllByPlaceholderText('name')
+    const goalName = goalInputs[1] // Second name input (first is bill, second is goal)
+    const goalValue = screen.getByPlaceholderText('value')
     fireEvent.change(goalName, { target: { value: 'Invest' } })
     fireEvent.change(goalValue, { target: { value: '10' } })
 

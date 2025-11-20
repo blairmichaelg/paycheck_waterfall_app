@@ -5,16 +5,29 @@ import Dashboard from './components/Dashboard';
 import Breakdown from './components/Breakdown';
 import Toast from './components/Toast';
 import ConfirmModal from './components/ConfirmModal';
-import { loadConfig, saveConfig, exportConfig, importConfig, clearConfig, saveAllocation, loadAllocation } from './lib/storage';
+import WelcomeModal from './components/WelcomeModal';
+import { loadConfig, saveConfig, exportConfig, importConfig, clearConfig, saveAllocation, loadAllocation, backupConfig, restoreConfigFromBackup, hasValidBackup } from './lib/storage';
 import { trackAction } from './lib/observability';
 import { loadTheme, saveTheme, getThemeColors, type Theme } from './lib/theme';
 import { trackSession, trackEvent } from './lib/analytics';
 import { formatCurrency } from './lib/formatters';
 import { allocatePaycheck, type AllocationResult } from './lib/allocations';
 import type { UserConfig } from './lib/types';
+import { getErrorMessage, type ErrorType } from './lib/errorMessages';
 
 export default function App() {
-  const [config, setConfig] = useState<UserConfig>(loadConfig());
+  const [config, setConfig] = useState<UserConfig>(() => {
+    const result = loadConfig();
+    // Show toast if there was a migration or error
+    if (result.migrated) {
+      setTimeout(() => showToast('Your settings were updated to the latest version!', 'info'), 500);
+    }
+    if (result.error) {
+      const errorMsg = getErrorMessage(result.error);
+      setTimeout(() => showToast(`${errorMsg.icon} ${errorMsg.message}`, 'warning'), 500);
+    }
+    return result.config;
+  });
   const [toastState, setToastState] = useState<{
     show: boolean;
     message: string;
@@ -30,6 +43,13 @@ export default function App() {
     action: 'clear' | 'import' | null;
     importData?: string;
   }>({ isOpen: false, action: null });
+  const [showWelcome, setShowWelcome] = useState(() => {
+    const hasSeenWelcome = localStorage.getItem('payflow_seen_welcome');
+    const hasNoBills = config.bills.length === 0;
+    const hasNoGoals = config.goals.length === 0;
+    return !hasSeenWelcome && hasNoBills && hasNoGoals;
+  });
+  const [backupAvailable, setBackupAvailable] = useState(() => hasValidBackup().exists);
 
   const colors = getThemeColors(theme);
 
@@ -66,20 +86,21 @@ export default function App() {
   };
 
   const handleSave = (c: UserConfig) => {
-    try {
-      saveConfig(c);
+    const saveResult = saveConfig(c);
+    if (saveResult.success) {
       setConfig(c);
       setLastSavedAt(Date.now());
-      showToast('Configuration saved');
+      showToast('💾 Configuration saved!', 'success');
       trackEvent('configSaves');
       trackAction('save_config', {
         bills: c.bills.length,
         goals: c.goals.length,
         bonuses: c.bonuses.length,
       });
-    } catch (err) {
-      showToast('Failed to save configuration. Check browser storage.', 'error');
-      console.error('Save failed:', err);
+    } else {
+      const errorMsg = getErrorMessage(saveResult.error || 'SAVE_FAILED');
+      showToast(`${errorMsg.icon} ${errorMsg.message}`, 'error');
+      console.error('Save failed:', saveResult.error);
     }
   };
 
@@ -207,15 +228,15 @@ export default function App() {
             { 
               id: 'spend', 
               label: lastAllocation 
-                ? `💚 $${lastAllocation.guilt_free.toFixed(0)} Guilt-Free` 
-                : '💰 I Got Paid' 
+                ? (isMobile ? `💚 $${lastAllocation.guilt_free.toFixed(0)}` : `💚 $${lastAllocation.guilt_free.toFixed(0)} Guilt-Free`)
+                : (isMobile ? '💰 Got Paid' : '💰 I Got Paid')
             },
             { 
               id: 'breakdown', 
-              label: '🌊 See Waterfall',
+              label: isMobile ? '🌊 Waterfall' : '🌊 See Waterfall',
               disabled: !lastAllocation
             },
-            { id: 'plan', label: '⚙️ Plan & Settings' },
+            { id: 'plan', label: isMobile ? '⚙️ Settings' : '⚙️ Plan & Settings' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -265,6 +286,76 @@ export default function App() {
           ))}
         </nav>
 
+        {/* Backup Restoration Banner */}
+        {backupAvailable && activeView === 'plan' && (
+          <div
+            style={{
+              background: colors.successBg,
+              padding: isMobile ? 12 : 16,
+              borderRadius: 12,
+              marginBottom: 16,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 12,
+              flexWrap: isMobile ? 'wrap' : 'nowrap',
+              border: `2px solid ${colors.success}`,
+              animation: 'fadeIn 0.3s ease',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
+              <span style={{ fontSize: 24 }}>💾</span>
+              <div>
+                <div style={{ color: colors.success, fontSize: 14, fontWeight: 600, marginBottom: 2 }}>
+                  Backup Available
+                </div>
+                <div style={{ color: colors.textSecondary, fontSize: 13 }}>
+                  We saved your last settings (available for 24 hours)
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                const restored = restoreConfigFromBackup();
+                if (restored) {
+                  const loadResult = loadConfig();
+                  setConfig(loadResult.config);
+                  setLastSavedAt(Date.now());
+                  setBackupAvailable(false);
+                  showToast('✨ Settings restored successfully!', 'success');
+                  trackAction('restore_config_banner');
+                } else {
+                  const errorMsg = getErrorMessage('LOAD_FAILED');
+                  showToast(`${errorMsg.icon} ${errorMsg.message}`, 'error');
+                }
+              }}
+              style={{
+                padding: '10px 20px',
+                background: colors.success,
+                border: 'none',
+                borderRadius: 8,
+                color: '#fff',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                whiteSpace: 'nowrap',
+                minHeight: 44,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              Restore Settings
+            </button>
+          </div>
+        )}
+
         <div
           style={{
             display: 'grid',
@@ -277,6 +368,9 @@ export default function App() {
             role="tabpanel"
             aria-labelledby={`${activeView}-tab`}
             tabIndex={0}
+            style={{
+              animation: 'fadeIn 0.3s ease',
+            }}
           >
             {activeView === 'plan' ? (
               <Onboarding
@@ -284,17 +378,88 @@ export default function App() {
                 onSave={handleSave}
                 lastSavedAt={lastSavedAt}
                 theme={theme}
-                guiltFree={lastAllocation?.guilt_free}
-                onNewPaycheck={handleQuickPaycheck}
               />
             ) : activeView === 'breakdown' ? (
               lastAllocation ? (
                 <Breakdown allocation={lastAllocation} config={config} theme={theme} onNewPaycheck={handleQuickPaycheck} />
               ) : (
-                <div style={{ padding: 48, textAlign: 'center', color: colors.textMuted }}>
-                  <div style={{ fontSize: 48, marginBottom: 16 }}>💰</div>
-                  <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>No results yet!</div>
-                  <div style={{ fontSize: 14 }}>Go to &ldquo;I Got Paid&rdquo; and enter your paycheck amount first.</div>
+                <div style={{ padding: isMobile ? 24 : 48, textAlign: 'center' }}>
+                  <div style={{ fontSize: 48, marginBottom: 16 }}>🌊</div>
+                  <div style={{ fontSize: 18, fontWeight: 600, color: colors.textPrimary, marginBottom: 12 }}>
+                    Your Waterfall Awaits!
+                  </div>
+                  <div style={{ fontSize: 14, color: colors.textMuted, marginBottom: 32, maxWidth: 400, margin: '0 auto 32px' }}>
+                    See how your paycheck flows through bills and goals like a waterfall. Run a calculation first!
+                  </div>
+                  
+                  {/* Preview mockup */}
+                  <div style={{ maxWidth: 500, margin: '0 auto', opacity: 0.6 }}>
+                    <div style={{ 
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      borderRadius: 16,
+                      padding: '16px 24px',
+                      marginBottom: 12,
+                      border: '2px dashed rgba(102, 126, 234, 0.4)'
+                    }}>
+                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', marginBottom: 4 }}>💰 Your Paycheck</div>
+                      <div style={{ fontSize: 24, fontWeight: 800, color: '#fff' }}>$X,XXX.XX</div>
+                    </div>
+                    
+                    <div style={{ fontSize: 20, margin: '8px 0' }}>💧</div>
+                    
+                    <div style={{ 
+                      background: colors.surfaceBg,
+                      borderRadius: 12,
+                      padding: '12px 16px',
+                      marginBottom: 8,
+                      border: `2px dashed ${colors.border}`
+                    }}>
+                      <div style={{ fontSize: 12, color: colors.textMuted }}>📋 Bills</div>
+                    </div>
+                    
+                    <div style={{ fontSize: 20, margin: '8px 0' }}>💧</div>
+                    
+                    <div style={{ 
+                      background: colors.surfaceBg,
+                      borderRadius: 12,
+                      padding: '12px 16px',
+                      marginBottom: 8,
+                      border: `2px dashed ${colors.border}`
+                    }}>
+                      <div style={{ fontSize: 12, color: colors.textMuted }}>🎯 Goals</div>
+                    </div>
+                    
+                    <div style={{ fontSize: 20, margin: '8px 0' }}>💧</div>
+                    
+                    <div style={{ 
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      borderRadius: 16,
+                      padding: '16px 24px',
+                      border: '2px dashed rgba(16, 185, 129, 0.4)'
+                    }}>
+                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', marginBottom: 4 }}>💚 Guilt-Free</div>
+                      <div style={{ fontSize: 24, fontWeight: 800, color: '#fff' }}>$XXX.XX</div>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={() => setActiveView('spend')}
+                    style={{
+                      marginTop: 32,
+                      padding: '12px 24px',
+                      background: colors.primaryGradient,
+                      border: 'none',
+                      borderRadius: 12,
+                      color: '#fff',
+                      fontSize: 15,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                      minHeight: 44,
+                    }}
+                  >
+                    Go Calculate Now →
+                  </button>
                 </div>
               )
             ) : (
@@ -387,20 +552,17 @@ export default function App() {
                         e.currentTarget.style.background = colors.surfaceBg;
                       }}
                     >
-                      📥 Export config
+                      Export Config
                     </button>
 
                     <label
-                      style={{ display: 'flex', flexDirection: 'column', gap: 6, cursor: 'pointer' }}
+                      style={{ display: 'block', cursor: 'pointer' }}
                     >
-                      <span style={{ fontSize: 14, fontWeight: 500, color: colors.textPrimary }}>
-                        📤 Import config
-                      </span>
                       <input
                         type="file"
                         accept="application/json"
                         aria-label="Import configuration from JSON file"
-                        style={{ fontSize: 13, minHeight: 44 }}
+                        style={{ display: 'none' }}
                         onChange={async (e) => {
                           const f = e.target.files && e.target.files[0];
                           if (!f) return;
@@ -409,7 +571,72 @@ export default function App() {
                           e.target.value = ''; // Reset file input
                         }}
                       />
+                      <div
+                        style={{
+                          padding: '10px 16px',
+                          background: colors.surfaceBg,
+                          border: 'none',
+                          borderRadius: 10,
+                          fontSize: 14,
+                          fontWeight: 500,
+                          color: colors.textPrimary,
+                          transition: 'all 0.2s ease',
+                          minHeight: 44,
+                          textAlign: 'center',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = colors.border;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = colors.surfaceBg;
+                        }}
+                      >
+                        Import Config
+                      </div>
                     </label>
+
+                    {backupAvailable && (
+                      <button
+                        onClick={() => {
+                          const restored = restoreConfigFromBackup();
+                          if (restored) {
+                            const loadResult = loadConfig();
+                            setConfig(loadResult.config);
+                            setLastSavedAt(Date.now());
+                            setBackupAvailable(false);
+                            showToast('✨ Configuration restored successfully!', 'success');
+                            trackAction('restore_config');
+                          } else {
+                            const errorMsg = getErrorMessage('LOAD_FAILED');
+                            showToast(`${errorMsg.icon} ${errorMsg.message}`, 'error');
+                          }
+                        }}
+                        aria-label="Restore last configuration"
+                        style={{
+                          padding: '10px 16px',
+                          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                          border: 'none',
+                          borderRadius: 10,
+                          cursor: 'pointer',
+                          fontSize: 14,
+                          fontWeight: 500,
+                          color: '#fff',
+                          transition: 'all 0.2s ease',
+                          minHeight: 44,
+                          boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-1px)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 2px 8px rgba(16, 185, 129, 0.3)';
+                        }}
+                      >
+                        ↺ Restore Last Config
+                      </button>
+                    )}
 
                     <button
                       onClick={() => setConfirmModal({ isOpen: true, action: 'clear' })}
@@ -433,7 +660,7 @@ export default function App() {
                         e.currentTarget.style.opacity = '1';
                       }}
                     >
-                      🗑️ Clear config
+                      Clear Config
                     </button>
                   </div>
                 </div>
@@ -498,7 +725,7 @@ export default function App() {
                       e.currentTarget.style.background = colors.surfaceBg;
                     }}
                   >
-                    📥 Export
+                    Export
                   </button>
                   <button
                     onClick={() => setActiveView('plan')}
@@ -522,7 +749,7 @@ export default function App() {
                       e.currentTarget.style.background = colors.surfaceBg;
                     }}
                   >
-                    ⚙️ Settings
+                    Settings
                   </button>
                 </div>
               </div>
@@ -552,26 +779,29 @@ export default function App() {
           onConfirm={() => {
             if (confirmModal.action === 'clear') {
               try {
+                backupConfig(); // Create backup before clearing
                 const next = clearConfig();
                 setConfig(next);
                 setLastAllocation(null); // Clear allocation result too
                 setLastSavedAt(Date.now());
-                showToast('Configuration cleared');
+                setBackupAvailable(true);
+                showToast('Configuration cleared. You can restore it within 24 hours.', 'success');
                 trackAction('clear_config');
               } catch (err) {
                 showToast('Failed to clear configuration', 'error');
                 console.error('Clear failed:', err);
               }
             } else if (confirmModal.action === 'import' && confirmModal.importData) {
-              const imported = importConfig(confirmModal.importData);
-              if (imported) {
-                setConfig(imported);
+              const importResult = importConfig(confirmModal.importData);
+              if (importResult.success && importResult.config) {
+                setConfig(importResult.config);
                 setLastSavedAt(Date.now());
-                showToast('Configuration imported successfully');
+                showToast('✨ Configuration imported successfully!', 'success');
                 trackAction('import_config');
               } else {
+                const errorMsg = getErrorMessage(importResult.error || 'IMPORT_FAILED');
                 showToast(
-                  'Invalid config file. The file may be corrupted or in the wrong format.',
+                  `${errorMsg.icon} ${errorMsg.message}`,
                   'error'
                 );
               }
@@ -580,6 +810,32 @@ export default function App() {
           }}
           onCancel={() => setConfirmModal({ isOpen: false, action: null })}
         />
+
+        <WelcomeModal
+          isOpen={showWelcome}
+          theme={theme}
+          onClose={() => {
+            setShowWelcome(false);
+            localStorage.setItem('payflow_seen_welcome', 'true');
+          }}
+          onGoToSettings={() => {
+            setActiveView('plan');
+            localStorage.setItem('payflow_seen_welcome', 'true');
+          }}
+        />
+
+        <style>{`
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}</style>
 
         {/* Footer with feedback link */}
         <footer
@@ -607,7 +863,7 @@ export default function App() {
               onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.7')}
               onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
             >
-              📬 Send Feedback
+              Send Feedback
             </a>
             {' · '}
             <a
@@ -623,7 +879,7 @@ export default function App() {
               onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.7')}
               onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
             >
-              💻 View Source
+              View Source
             </a>
           </p>
           <p style={{ fontSize: 12, opacity: 0.7 }}>

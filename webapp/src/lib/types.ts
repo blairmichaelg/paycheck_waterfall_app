@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const CONFIG_VERSION = 3 as const;
+export const CONFIG_VERSION = 4 as const;
 
 export const PAY_FREQUENCIES = ['weekly', 'biweekly', 'semi_monthly', 'monthly'] as const;
 export const BILL_CADENCES = [
@@ -17,7 +17,8 @@ export const billSchema = z.object({
   name: z.string().min(1, 'Bill name required'),
   amount: z.number().nonnegative('Bill amount must be ≥ 0'),
   cadence: z.enum(BILL_CADENCES).default('monthly'),
-  dueDay: z.number().int().min(1).max(31).optional(),
+  dueDay: z.number().int().min(1).max(31).optional(), // Legacy, keep for old data
+  nextDueDate: z.string().optional(), // ISO date string - when is this bill next due?
 });
 
 export const incomeRangeSchema = z
@@ -46,6 +47,7 @@ export const settingsSchema = z.object({
   percentApply: z.enum(['gross', 'remainder']),
   payFrequency: z.enum(PAY_FREQUENCIES).default('biweekly'),
   paycheckRange: incomeRangeSchema.default({ min: 0, max: 0 }),
+  nextPaycheckDate: z.string().optional(), // ISO date string - when's your next paycheck?
 });
 
 export const userConfigSchema = z.object({

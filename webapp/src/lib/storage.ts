@@ -7,9 +7,12 @@ import {
   legacyConfigSchemaV1,
 } from './types';
 import type { AllocationResult } from './allocations';
+import { detectErrorType, type ErrorType } from './errorMessages';
 
-const STORAGE_KEY = 'paycheck_waterfall_config';
-const ALLOCATION_KEY = 'paycheck_waterfall_last_allocation';
+export const STORAGE_KEY = 'paycheck_waterfall_config';
+export const ALLOCATION_KEY = 'paycheck_waterfall_last_allocation';
+export const BACKUP_KEY = 'paycheck_waterfall_config_backup';
+export const BACKUP_TIMESTAMP_KEY = 'paycheck_waterfall_config_backup_timestamp';
 
 const upgradeLegacy = (legacy: LegacyConfigV1): UserConfig => ({
   version: CONFIG_VERSION,
@@ -33,14 +36,17 @@ const upgradeLegacy = (legacy: LegacyConfigV1): UserConfig => ({
   },
 });
 
-const parseConfig = (raw: unknown): { config: UserConfig; migrated: boolean } => {
+const parseConfig = (raw: unknown): { config: UserConfig; migrated?: boolean } => {
   const parsed = userConfigSchema.safeParse(raw);
   if (parsed.success) {
     const normalized = {
       ...parsed.data,
       version: CONFIG_VERSION,
     };
-    return { config: normalized, migrated: parsed.data.version !== CONFIG_VERSION };
+    const wasMigrated = parsed.data.version !== CONFIG_VERSION;
+    return wasMigrated 
+      ? { config: normalized, migrated: true }
+      : { config: normalized };
   }
 
   const legacy = legacyConfigSchemaV1.safeParse(raw);
@@ -51,22 +57,34 @@ const parseConfig = (raw: unknown): { config: UserConfig; migrated: boolean } =>
   return { config: createDefaultConfig(), migrated: true };
 };
 
-export function loadConfig(): UserConfig {
+export type LoadResult = {
+  config: UserConfig;
+  error?: ErrorType;
+  migrated?: boolean;
+};
+
+export function loadConfig(): LoadResult {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return createDefaultConfig();
+    if (!raw) return { config: createDefaultConfig() };
     const { config, migrated } = parseConfig(JSON.parse(raw));
     if (migrated) {
       saveConfig(config);
     }
-    return config;
+    return { config, migrated };
   } catch (err) {
     console.warn('loadConfig: failed to read config, returning default', err);
-    return createDefaultConfig();
+    const errorType = detectErrorType(err);
+    return { config: createDefaultConfig(), error: errorType };
   }
 }
 
-export function saveConfig(cfg: UserConfig) {
+export type SaveResult = {
+  success: boolean;
+  error?: ErrorType;
+};
+
+export function saveConfig(cfg: UserConfig): SaveResult {
   try {
     const normalized = userConfigSchema.parse({
       ...cfg,
@@ -74,8 +92,11 @@ export function saveConfig(cfg: UserConfig) {
       updatedAt: new Date().toISOString(),
     });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+    return { success: true };
   } catch (err) {
     console.warn('saveConfig: failed to write config', err);
+    const errorType = detectErrorType(err);
+    return { success: false, error: errorType };
   }
 }
 
@@ -91,18 +112,28 @@ export function clearConfig() {
 }
 
 export function exportConfig(): string {
-  const cfg = loadConfig();
-  return JSON.stringify(cfg, null, 2);
+  const { config } = loadConfig();
+  return JSON.stringify(config, null, 2);
 }
 
-export function importConfig(json: string): UserConfig | null {
+export type ImportResult = {
+  config?: UserConfig;
+  success: boolean;
+  error?: ErrorType;
+};
+
+export function importConfig(json: string): ImportResult {
   try {
     const { config } = parseConfig(JSON.parse(json));
-    saveConfig(config);
-    return config;
+    const saveResult = saveConfig(config);
+    if (!saveResult.success) {
+      return { success: false, error: saveResult.error };
+    }
+    return { config, success: true };
   } catch (err) {
     console.warn('importConfig: invalid json', err);
-    return null;
+    const errorType = detectErrorType(err);
+    return { success: false, error: errorType };
   }
 }
 
@@ -134,5 +165,81 @@ export function loadAllocation(): AllocationResult | null {
   } catch (err) {
     console.warn('loadAllocation: failed to load allocation', err);
     return null;
+  }
+}
+
+/**
+ * Create a backup of the current config before destructive operations.
+ * Backup expires after 24 hours.
+ */
+export function backupConfig(): void {
+  try {
+    const current = loadConfig();
+    localStorage.setItem(BACKUP_KEY, JSON.stringify(current));
+    localStorage.setItem(BACKUP_TIMESTAMP_KEY, Date.now().toString());
+  } catch (err) {
+    console.warn('backupConfig: failed to create backup', err);
+  }
+}
+
+/**
+ * Restore config from backup if it exists and is less than 24 hours old.
+ * Returns true if restore was successful.
+ */
+export function restoreConfigFromBackup(): boolean {
+  try {
+    const backupRaw = localStorage.getItem(BACKUP_KEY);
+    const timestampRaw = localStorage.getItem(BACKUP_TIMESTAMP_KEY);
+    
+    if (!backupRaw || !timestampRaw) return false;
+    
+    const timestamp = parseInt(timestampRaw, 10);
+    const now = Date.now();
+    const twentyFourHours = 24 * 60 * 60 * 1000;
+    
+    // Check if backup is expired
+    if (now - timestamp > twentyFourHours) {
+      localStorage.removeItem(BACKUP_KEY);
+      localStorage.removeItem(BACKUP_TIMESTAMP_KEY);
+      return false;
+    }
+    
+    const backup = JSON.parse(backupRaw) as UserConfig;
+    saveConfig(backup);
+    
+    // Clear backup after successful restore
+    localStorage.removeItem(BACKUP_KEY);
+    localStorage.removeItem(BACKUP_TIMESTAMP_KEY);
+    
+    return true;
+  } catch (err) {
+    console.warn('restoreConfigFromBackup: failed to restore', err);
+    return false;
+  }
+}
+
+/**
+ * Check if a backup exists and is valid (less than 24 hours old).
+ */
+export function hasValidBackup(): { exists: boolean; timestamp?: number } {
+  try {
+    const backupRaw = localStorage.getItem(BACKUP_KEY);
+    const timestampRaw = localStorage.getItem(BACKUP_TIMESTAMP_KEY);
+    
+    if (!backupRaw || !timestampRaw) return { exists: false };
+    
+    const timestamp = parseInt(timestampRaw, 10);
+    const now = Date.now();
+    const twentyFourHours = 24 * 60 * 60 * 1000;
+    
+    if (now - timestamp > twentyFourHours) {
+      localStorage.removeItem(BACKUP_KEY);
+      localStorage.removeItem(BACKUP_TIMESTAMP_KEY);
+      return { exists: false };
+    }
+    
+    return { exists: true, timestamp };
+  } catch (err) {
+    return { exists: false };
   }
 }

@@ -12,6 +12,7 @@ export default function Header({ lastAllocation, theme, onToggleTheme }: HeaderP
   const guiltFree = lastAllocation ? lastAllocation.guilt_free : 0;
   const hasAllocation = lastAllocation !== null;
   const colors = getThemeColors(theme);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
   return (
     <header style={{ marginBottom: 24, textAlign: 'center', position: 'relative' }}>
@@ -58,24 +59,40 @@ export default function Header({ lastAllocation, theme, onToggleTheme }: HeaderP
           style={{
             display: 'inline-block',
             background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            padding: '16px 32px',
-            borderRadius: 16,
-            boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
+            padding: isMobile ? '24px 20px' : '64px 80px',
+            borderRadius: 28,
+            boxShadow: '0 20px 60px rgba(16, 185, 129, 0.5)',
+            marginTop: isMobile ? 16 : 32,
+            marginBottom: 16,
+            minWidth: isMobile ? '95%' : '90%',
+            maxWidth: '800px',
           }}
         >
           <div
             style={{
-              fontSize: 12,
-              color: 'rgba(255,255,255,0.8)',
-              fontWeight: 600,
+              fontSize: isMobile ? 16 : 22,
+              color: 'rgba(255,255,255,0.95)',
+              fontWeight: 700,
               textTransform: 'uppercase',
-              letterSpacing: '0.5px',
+              letterSpacing: '1.5px',
+              marginBottom: isMobile ? 8 : 16,
             }}
           >
-            💚 Guilt-Free Spending
+            Your Guilt-Free Spending
           </div>
-          <div style={{ fontSize: 32, fontWeight: 700, color: '#fff', marginTop: 4 }}>
+          <div style={{ fontSize: isMobile ? 48 : 96, fontWeight: 900, color: '#fff', marginTop: isMobile ? 4 : 12, lineHeight: 0.95, textShadow: '0 6px 16px rgba(0,0,0,0.25)' }}>
             ${guiltFree.toFixed(2)}
+          </div>
+          <div
+            style={{
+              fontSize: isMobile ? 13 : 16,
+              color: 'rgba(255,255,255,0.9)',
+              fontWeight: 600,
+              marginTop: isMobile ? 12 : 20,
+              fontStyle: 'italic',
+            }}
+          >
+            Spend it without worry - bills and goals covered!
           </div>
         </div>
       )}

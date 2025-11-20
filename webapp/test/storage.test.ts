@@ -15,12 +15,13 @@ describe('storage', () => {
   
   describe('loadConfig', () => {
     it('returns default config when localStorage is empty', () => {
-      const config = loadConfig()
-      expect(config.version).toBe(CONFIG_VERSION)
-      expect(config.bills).toEqual([])
-      expect(config.goals).toEqual([])
-      expect(config.bonuses).toEqual([])
-      expect(config.settings.percentApply).toBe('gross')
+      const result = loadConfig()
+      expect(result.config.version).toBe(CONFIG_VERSION)
+      expect(result.config.bills).toEqual([])
+      expect(result.config.goals).toEqual([])
+      expect(result.config.bonuses).toEqual([])
+      expect(result.config.settings.percentApply).toBe('gross')
+      expect(result.error).toBeUndefined()
     })
     
     it('loads valid config from localStorage', () => {
@@ -28,12 +29,13 @@ describe('storage', () => {
       testConfig.bills = [{ name: 'Rent', amount: 1000, cadence: 'monthly' }]
       localStorage.setItem(STORAGE_KEY, JSON.stringify(testConfig))
       
-      const loaded = loadConfig()
-      expect(loaded.bills).toHaveLength(1)
-      expect(loaded.bills[0].name).toBe('Rent')
+      const result = loadConfig()
+      expect(result.config.bills).toHaveLength(1)
+      expect(result.config.bills[0].name).toBe('Rent')
+      expect(result.error).toBeUndefined()
     })
     
-    it('migrates legacy v1 config to v3', () => {
+    it('migrates legacy v1 config to v4 and sets migrated flag', () => {
       const legacyConfig = {
         bills: [{ name: 'Electric', amount: 100, cadence: 'monthly' }],
         goals: [{ name: 'Save', type: 'percent', value: 10 }],
@@ -45,25 +47,63 @@ describe('storage', () => {
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(legacyConfig))
       
-      const loaded = loadConfig()
-      expect(loaded.version).toBe(CONFIG_VERSION)
-      expect(loaded.bills).toHaveLength(1)
-      expect(loaded.goals).toHaveLength(1)
-      expect(loaded.bonuses).toEqual([]) // New in v3
-      expect(loaded.settings.percentApply).toBe('remainder')
+      const result = loadConfig()
+      expect(result.config.version).toBe(CONFIG_VERSION)
+      expect(result.config.bills).toHaveLength(1)
+      expect(result.config.goals).toHaveLength(1)
+      expect(result.config.bonuses).toEqual([]) // New in v3+
+      expect(result.config.settings.percentApply).toBe('remainder')
+      expect(result.migrated).toBe(true)
+      expect(result.error).toBeUndefined()
     })
     
-    it('handles corrupted localStorage data gracefully', () => {
+    it('preserves all legacy v1 bill data during migration', () => {
+      const legacyConfig = {
+        bills: [
+          { name: 'Rent', amount: 1200, cadence: 'monthly', dueDay: 1 },
+          { name: 'Electric', amount: 150, cadence: 'biweekly' }
+        ],
+        goals: [],
+        settings: {
+          percentApply: 'gross',
+          payFrequency: 'biweekly',
+          paycheckRange: { min: 800, max: 1200 }
+        }
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(legacyConfig))
+      
+      const result = loadConfig()
+      expect(result.config.bills).toHaveLength(2)
+      expect(result.config.bills[0].name).toBe('Rent')
+      expect(result.config.bills[0].amount).toBe(1200)
+      expect(result.config.bills[0].dueDay).toBe(1)
+      expect(result.config.bills[1].name).toBe('Electric')
+      expect(result.migrated).toBe(true)
+    })
+    
+    it('handles corrupted localStorage data and returns error', () => {
       localStorage.setItem(STORAGE_KEY, 'invalid json {')
-      const loaded = loadConfig()
-      expect(loaded.version).toBe(CONFIG_VERSION)
-      expect(loaded.bills).toEqual([])
+      const result = loadConfig()
+      expect(result.config.version).toBe(CONFIG_VERSION)
+      expect(result.config.bills).toEqual([])
+      expect(result.error).toBeDefined()
     })
     
     it('handles non-object JSON in localStorage', () => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify('string data'))
-      const loaded = loadConfig()
-      expect(loaded.version).toBe(CONFIG_VERSION)
+      const result = loadConfig()
+      expect(result.config.version).toBe(CONFIG_VERSION)
+      expect(result.migrated).toBe(true)
+    })
+    
+    it('does not set migrated flag for current version config', () => {
+      const config = createDefaultConfig()
+      config.bills = [{ name: 'Test', amount: 100, cadence: 'monthly' }]
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
+      
+      const result = loadConfig()
+      expect(result.migrated).toBeUndefined()
+      expect(result.error).toBeUndefined()
     })
   })
   
@@ -72,7 +112,10 @@ describe('storage', () => {
       const config = createDefaultConfig()
       config.bills = [{ name: 'Internet', amount: 50, cadence: 'monthly' }]
       
-      saveConfig(config)
+      const result = saveConfig(config)
+      
+      expect(result.success).toBe(true)
+      expect(result.error).toBeUndefined()
       
       const raw = localStorage.getItem(STORAGE_KEY)
       expect(raw).toBeTruthy()
@@ -85,8 +128,9 @@ describe('storage', () => {
       const config = createDefaultConfig()
       const before = new Date().toISOString()
       
-      saveConfig(config)
+      const result = saveConfig(config)
       
+      expect(result.success).toBe(true)
       const raw = localStorage.getItem(STORAGE_KEY)
       const parsed = JSON.parse(raw!)
       expect(new Date(parsed.updatedAt).getTime()).toBeGreaterThanOrEqual(new Date(before).getTime())
@@ -98,8 +142,27 @@ describe('storage', () => {
       
       saveConfig(config)
       
-      const loaded = loadConfig()
-      expect(loaded.version).toBe(CONFIG_VERSION)
+      const loadResult = loadConfig()
+      expect(loadResult.config.version).toBe(CONFIG_VERSION)
+    })
+    
+    it('returns success false on storage errors', () => {
+      const config = createDefaultConfig()
+      // Simulate quota exceeded by mocking localStorage
+      const originalSetItem = Storage.prototype.setItem
+      Storage.prototype.setItem = () => {
+        const error = new Error('QuotaExceededError')
+        error.name = 'QuotaExceededError'
+        throw error
+      }
+      
+      const result = saveConfig(config)
+      
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('STORAGE_QUOTA')
+      
+      // Restore original
+      Storage.prototype.setItem = originalSetItem
     })
   })
   
@@ -111,8 +174,8 @@ describe('storage', () => {
       
       clearConfig()
       
-      const loaded = loadConfig()
-      expect(loaded.bills).toEqual([])
+      const loadResult = loadConfig()
+      expect(loadResult.config.bills).toEqual([])
     })
     
     it('returns default config', () => {
@@ -163,9 +226,10 @@ describe('storage', () => {
       
       const result = importConfig(json)
       
-      expect(result).not.toBeNull()
-      expect(result!.bills).toHaveLength(1)
-      expect(result!.bills[0].name).toBe('Imported')
+      expect(result.success).toBe(true)
+      expect(result.config).toBeDefined()
+      expect(result.config!.bills).toHaveLength(1)
+      expect(result.config!.bills[0].name).toBe('Imported')
     })
     
     it('imports and migrates legacy config', () => {
@@ -178,23 +242,27 @@ describe('storage', () => {
       
       const result = importConfig(json)
       
-      expect(result).not.toBeNull()
-      expect(result!.version).toBe(CONFIG_VERSION)
-      expect(result!.bills[0].name).toBe('Legacy Bill')
-      expect(result!.bonuses).toEqual([])
+      expect(result.success).toBe(true)
+      expect(result.config).toBeDefined()
+      expect(result.config!.version).toBe(CONFIG_VERSION)
+      expect(result.config!.bills[0].name).toBe('Legacy Bill')
+      expect(result.config!.bonuses).toEqual([])
     })
     
-    it('returns null for invalid JSON', () => {
+    it('returns error for invalid JSON', () => {
       const result = importConfig('invalid json {')
-      expect(result).toBeNull()
+      expect(result.success).toBe(false)
+      expect(result.error).toBeDefined()
+      expect(result.config).toBeUndefined()
     })
     
     it('imports non-object JSON as default config', () => {
       const result = importConfig(JSON.stringify('string'))
       // Non-object JSON is treated as invalid and returns default config
-      expect(result).not.toBeNull()
-      expect(result!.version).toBe(CONFIG_VERSION)
-      expect(result!.bills).toEqual([])
+      expect(result.success).toBe(true)
+      expect(result.config).toBeDefined()
+      expect(result.config!.version).toBe(CONFIG_VERSION)
+      expect(result.config!.bills).toEqual([])
     })
     
     it('persists imported config to localStorage', () => {
@@ -204,8 +272,8 @@ describe('storage', () => {
       
       importConfig(json)
       
-      const loaded = loadConfig()
-      expect(loaded.bills[0].name).toBe('Persist')
+      const loadResult = loadConfig()
+      expect(loadResult.config.bills[0].name).toBe('Persist')
     })
   })
   
@@ -218,8 +286,8 @@ describe('storage', () => {
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(legacyConfig))
       
-      const loaded = loadConfig()
-      expect(loaded.bills).toEqual([])
+      const result = loadConfig()
+      expect(result.config.bills).toEqual([])
     })
     
     it('handles missing optional fields in bills', () => {
@@ -227,8 +295,8 @@ describe('storage', () => {
       config.bills = [{ name: 'Bill', amount: 100, cadence: 'monthly' }]
       localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
       
-      const loaded = loadConfig()
-      expect(loaded.bills[0].dueDay).toBeUndefined()
+      const result = loadConfig()
+      expect(result.config.bills[0].dueDay).toBeUndefined()
     })
     
     it('handles paycheck range with equal min and max', () => {
@@ -236,9 +304,9 @@ describe('storage', () => {
       config.settings.paycheckRange = { min: 1000, max: 1000 }
       saveConfig(config)
       
-      const loaded = loadConfig()
-      expect(loaded.settings.paycheckRange.min).toBe(1000)
-      expect(loaded.settings.paycheckRange.max).toBe(1000)
+      const result = loadConfig()
+      expect(result.config.settings.paycheckRange.min).toBe(1000)
+      expect(result.config.settings.paycheckRange.max).toBe(1000)
     })
   })
 })

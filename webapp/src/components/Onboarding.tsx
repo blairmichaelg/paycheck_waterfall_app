@@ -2,6 +2,7 @@ import React, { useEffect, useId, useState } from 'react';
 import { getThemeColors, type Theme } from '../lib/theme';
 import ConfirmModal from './ConfirmModal';
 import { formatRelativeTime } from '../lib/dateUtils';
+import { getErrorMessage } from '../lib/errorMessages';
 import {
   BILL_CADENCES,
   PAY_FREQUENCIES,
@@ -41,6 +42,12 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
     type: 'bill' | 'goal' | 'bonus' | null;
     index: number | null;
   }>({ isOpen: false, type: null, index: null });
+  const [expandedSections, setExpandedSections] = useState({
+    bills: true,
+    goals: bills.length > 0, // Auto-expand goals if bills exist
+    settings: false,
+    bonuses: false,
+  });
   const percentApplyFieldId = useId();
   const bonusId = useId();
 
@@ -94,44 +101,51 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
     // basic validation
     for (const b of bills) {
       if (!b.name || b.name.trim() === '') {
-        setError('All bills must have a name');
+        const errorMsg = getErrorMessage('INVALID_BILL_NAME');
+        setError(`${errorMsg.icon} ${errorMsg.message}`);
         return;
       }
       if (Number.isNaN(Number(b.amount)) || b.amount < 0) {
-        setError('Bill amounts must be non-negative numbers');
+        const errorMsg = getErrorMessage('INVALID_NUMBER');
+        setError(`${errorMsg.icon} ${errorMsg.message} (Bill amount)`);
         return;
       }
       if (b.dueDay !== undefined && (b.dueDay < 1 || b.dueDay > 31)) {
-        setError('Bill due day must be between 1 and 31');
+        setError('📅 Due day must be between 1 and 31 for monthly bills');
         return;
       }
     }
     for (const g of goals) {
       if (!g.name || g.name.trim() === '') {
-        setError('All goals must have a name');
+        const errorMsg = getErrorMessage('INVALID_GOAL_NAME');
+        setError(`${errorMsg.icon} ${errorMsg.message}`);
         return;
       }
       if (Number.isNaN(Number(g.value)) || g.value < 0) {
-        setError('Goal values must be non-negative numbers');
+        const errorMsg = getErrorMessage('INVALID_NUMBER');
+        setError(`${errorMsg.icon} ${errorMsg.message} (Goal value)`);
         return;
       }
     }
     for (const bonus of bonuses) {
       if (!bonus.name || bonus.name.trim() === '') {
-        setError('All bonuses must have a name');
+        setError('💰 Give your bonus income a name to track it!');
         return;
       }
       if (Number.isNaN(Number(bonus.range.min)) || Number.isNaN(Number(bonus.range.max))) {
-        setError('Bonus ranges must be valid numbers');
+        const errorMsg = getErrorMessage('INVALID_NUMBER');
+        setError(`${errorMsg.icon} ${errorMsg.message} (Bonus range)`);
         return;
       }
       if (bonus.range.max < bonus.range.min) {
-        setError('Bonus range max must be ≥ min');
+        const errorMsg = getErrorMessage('INVALID_RANGE');
+        setError(`${errorMsg.icon} ${errorMsg.message}`);
         return;
       }
     }
     if (paycheckMax < paycheckMin) {
-      setError('Paycheck range max must be ≥ min');
+      const errorMsg = getErrorMessage('INVALID_RANGE');
+      setError(`${errorMsg.icon} ${errorMsg.message} (Paycheck range)`);
       return;
     }
     setError(null);
@@ -204,21 +218,53 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
         </div>
       ) : null}
       <div style={{ marginBottom: 32 }}>
-        <div
+        <button
+          onClick={() => setExpandedSections({ ...expandedSections, bills: !expandedSections.bills })}
           style={{
+            width: '100%',
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             padding: '12px 16px',
             borderRadius: 12,
-            marginBottom: 16,
+            marginBottom: expandedSections.bills ? 16 : 0,
             boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            transition: 'all 0.2s ease',
           }}
         >
           <h4
             style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '0.3px' }}
           >
-            📋 Bills
+            📋 Bills {bills.length > 0 && `(${bills.length})`}
           </h4>
-        </div>
+          <span style={{ color: '#fff', fontSize: 20 }}>
+            {expandedSections.bills ? '−' : '+'}
+          </span>
+        </button>
+        {expandedSections.bills && (
+        <div style={{ animation: 'fadeIn 0.2s ease' }}>
+        {bills.length === 0 && (
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '32px 16px',
+              background: colors.surfaceBg,
+              borderRadius: 12,
+              marginBottom: 16,
+            }}
+          >
+            <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: colors.textPrimary, marginBottom: 8 }}>
+              Add your first bill to get started!
+            </div>
+            <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6 }}>
+              Don't worry—you can always edit or remove it later. Just add the basics and we'll help you allocate funds!
+            </div>
+          </div>
+        )}
         {bills.map((b, i) => (
           <div
             key={i}
@@ -316,24 +362,58 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
         >
           + Add bill
         </button>
+        </div>
+        )}
       </div>
 
       <div style={{ marginBottom: 32 }}>
-        <div
+        <button
+          onClick={() => setExpandedSections({ ...expandedSections, goals: !expandedSections.goals })}
           style={{
+            width: '100%',
             background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
             padding: '12px 16px',
             borderRadius: 12,
-            marginBottom: 16,
+            marginBottom: expandedSections.goals ? 16 : 0,
             boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            transition: 'all 0.2s ease',
           }}
         >
           <h4
             style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '0.3px' }}
           >
-            🎯 Goals
+            🎯 Goals {goals.length > 0 && `(${goals.length})`}
           </h4>
-        </div>
+          <span style={{ color: '#fff', fontSize: 20 }}>
+            {expandedSections.goals ? '−' : '+'}
+          </span>
+        </button>
+        {expandedSections.goals && (
+        <div style={{ animation: 'fadeIn 0.2s ease' }}>
+        {goals.length === 0 && (
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '32px 16px',
+              background: colors.surfaceBg,
+              borderRadius: 12,
+              marginBottom: 16,
+            }}
+          >
+            <div style={{ fontSize: 48, marginBottom: 12 }}>🎯</div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: colors.textPrimary, marginBottom: 8 }}>
+              Set your first savings goal!
+            </div>
+            <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6 }}>
+              Goals help you save automatically. Add a goal as a percentage or fixed amount—we'll handle the math!
+            </div>
+          </div>
+        )}
         {goals.map((g, i) => (
           <div
             key={i}
@@ -408,16 +488,26 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
         >
           + Add goal
         </button>
+        </div>
+        )}
       </div>
 
       <div style={{ marginBottom: 32 }}>
-        <div
+        <button
+          onClick={() => setExpandedSections({ ...expandedSections, settings: !expandedSections.settings })}
           style={{
+            width: '100%',
             background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
             padding: '12px 16px',
             borderRadius: 12,
-            marginBottom: 16,
+            marginBottom: expandedSections.settings ? 16 : 0,
             boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            transition: 'all 0.2s ease',
           }}
         >
           <h4
@@ -425,7 +515,12 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
           >
             ⚙️ Settings
           </h4>
-        </div>
+          <span style={{ color: '#fff', fontSize: 20 }}>
+            {expandedSections.settings ? '−' : '+'}
+          </span>
+        </button>
+        {expandedSections.settings && (
+        <div style={{ animation: 'fadeIn 0.2s ease' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <label
             htmlFor={percentApplyFieldId}
@@ -497,27 +592,58 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
             </label>
           </div>
         </div>
+        </div>
+        )}
       </div>
 
       <div style={{ marginBottom: 32 }}>
-        <div
+        <button
+          onClick={() => setExpandedSections({ ...expandedSections, bonuses: !expandedSections.bonuses })}
           style={{
+            width: '100%',
             background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
             padding: '12px 16px',
             borderRadius: 12,
-            marginBottom: 16,
+            marginBottom: expandedSections.bonuses ? 16 : 0,
             boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            transition: 'all 0.2s ease',
           }}
         >
           <h4
             style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '0.3px' }}
           >
-            💰 Bonus / Supplemental Income
+            💰 Bonus Income {bonuses.length > 0 && `(${bonuses.length})`}
           </h4>
-        </div>
-        {bonuses.length === 0 ? (
-          <div style={{ color: colors.textMuted }}>No bonuses configured.</div>
-        ) : null}
+          <span style={{ color: '#fff', fontSize: 20 }}>
+            {expandedSections.bonuses ? '−' : '+'}
+          </span>
+        </button>
+        {expandedSections.bonuses && (
+        <div style={{ animation: 'fadeIn 0.2s ease' }}>
+        {bonuses.length === 0 && (
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '32px 16px',
+              background: colors.surfaceBg,
+              borderRadius: 12,
+              marginBottom: 16,
+            }}
+          >
+            <div style={{ fontSize: 48, marginBottom: 12 }}>💰</div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: colors.textPrimary, marginBottom: 8 }}>
+              Track bonus income (optional)
+            </div>
+            <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6 }}>
+              Got tips, commissions, or variable income? Add them here and we'll factor them into your budget!
+            </div>
+          </div>
+        )}
         {bonuses.map((bonus, i) => (
           <div
             key={`${bonusId}-${i}`}
@@ -623,6 +749,8 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
         >
           + Add bonus
         </button>
+        </div>
+        )}
       </div>
 
       <div style={{ marginTop: 24, paddingTop: 24, borderTop: `2px solid ${colors.border}` }}>

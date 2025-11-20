@@ -4,6 +4,7 @@ import { trackAction } from '../lib/observability';
 import { trackEvent } from '../lib/analytics';
 import { getThemeColors, type Theme } from '../lib/theme';
 import { formatCurrency } from '../lib/formatters';
+import { getErrorMessage } from '../lib/errorMessages';
 import type { AllocationResult } from '../lib/allocations';
 import type { UserConfig } from '../lib/types';
 
@@ -49,7 +50,8 @@ export default function Dashboard({
   const run = () => {
     const parsed = Number(amountInput.replace(/[^0-9.]/g, ''));
     if (!parsed || parsed <= 0) {
-      setError('Enter a paycheck amount greater than zero');
+      const errorMsg = getErrorMessage('INVALID_AMOUNT');
+      setError(`${errorMsg.icon} ${errorMsg.message}`);
       setLastResult(null);
       return;
     }
@@ -87,7 +89,8 @@ export default function Dashboard({
         trackEvent('paycheckCalculations');
         trackAction('run_allocation', { paycheck: parsed, guilt_free: res.guilt_free });
       } catch (err) {
-        setError('Calculation failed. Please check your inputs.');
+        const errorMsg = getErrorMessage('CALCULATION_FAILED');
+        setError(`${errorMsg.icon} ${errorMsg.message}`);
         console.error('Allocation error:', err);
       } finally {
         setIsCalculating(false);
@@ -131,9 +134,14 @@ export default function Dashboard({
               inputMode="decimal"
               value={amountInput}
               onChange={(e) => setAmountInput(e.target.value.replace(/[^0-9.]/g, ''))}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !isCalculating) {
+                  run();
+                }
+              }}
               placeholder="e.g. 850"
               style={{
-                flex: 1,
+                flex: isMobile ? '1 1 58%' : '1',
                 padding: '14px 18px',
                 borderRadius: 12,
                 border: '2px solid rgba(255,255,255,0.8)',
@@ -143,9 +151,15 @@ export default function Dashboard({
                 color: '#1f2937',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                 outline: 'none',
+                minWidth: isMobile ? '120px' : 'auto',
               }}
               onFocus={(e) => {
                 e.currentTarget.style.borderColor = '#667eea';
+                if (isMobile) {
+                  setTimeout(() => {
+                    e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }, 300);
+                }
               }}
               onBlur={(e) => {
                 e.currentTarget.style.borderColor = 'rgba(255,255,255,0.8)';
@@ -155,7 +169,7 @@ export default function Dashboard({
               onClick={run}
               disabled={isCalculating}
               style={{
-                padding: isMobile ? '16px 24px' : '18px 36px',
+                padding: isMobile ? '14px 16px' : '18px 36px',
                 borderRadius: 14,
                 border: 'none',
                 background: isCalculating 
@@ -163,7 +177,7 @@ export default function Dashboard({
                   : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                 color: '#fff',
                 fontWeight: 800,
-                fontSize: isMobile ? 16 : 18,
+                fontSize: isMobile ? 15 : 18,
                 boxShadow: isCalculating 
                   ? '0 4px 12px rgba(0,0,0,0.1)' 
                   : '0 8px 28px rgba(16, 185, 129, 0.5)',
@@ -171,8 +185,8 @@ export default function Dashboard({
                 transition: 'all 0.3s ease',
                 whiteSpace: 'nowrap',
                 minHeight: '52px',
-                minWidth: isMobile ? '100%' : '180px',
-                flex: isMobile ? '1 0 100%' : 'none',
+                flex: isMobile ? '1 1 38%' : 'none',
+                minWidth: isMobile ? '100px' : '180px',
                 opacity: isCalculating ? 0.7 : 1,
                 textShadow: '0 2px 4px rgba(0,0,0,0.2)',
                 letterSpacing: '0.5px',
@@ -192,7 +206,7 @@ export default function Dashboard({
                 }
               }}
             >
-              {isCalculating ? '⏳ Calculating...' : '🎉 I Got Paid!! 💰'}
+              {isCalculating ? '⏳ Calculating...' : (isMobile ? '🎉 Got Paid!' : '🎉 I Got Paid!! 💰')}
             </button>
           </div>
         </label>
@@ -638,6 +652,82 @@ export default function Dashboard({
             )}
           </section>
 
+          {/* Allocation Explainer */}
+          <details
+            style={{
+              marginTop: 16,
+              padding: 16,
+              background: colors.surfaceBg,
+              borderRadius: 12,
+              border: `1px solid ${colors.border}`,
+              cursor: 'pointer',
+            }}
+          >
+            <summary
+              style={{
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: 14,
+                color: colors.textPrimary,
+                userSelect: 'none',
+                listStyle: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
+              <span>🤔</span>
+              <span>How was this calculated?</span>
+            </summary>
+            <div
+              style={{
+                marginTop: 12,
+                paddingTop: 12,
+                borderTop: `1px solid ${colors.border}`,
+                fontSize: 14,
+                lineHeight: 1.7,
+                color: colors.textSecondary,
+              }}
+            >
+              <p style={{ margin: '0 0 12px 0', color: colors.textPrimary }}>
+                Your paycheck of <strong>{lastResult ? `${lastResult.meta.paycheck.toFixed(2)}` : '0.00'}</strong> was
+                allocated like this:
+              </p>
+              <ol style={{ margin: 0, paddingLeft: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <li>
+                  <strong>Bills due before next paycheck</strong> were funded first (reduces stress!)
+                </li>
+                <li>
+                  <strong>Extra money</strong> went to complete partial bills when possible
+                </li>
+                <li>
+                  <strong>Goals</strong> received{' '}
+                  {percentApply === 'gross'
+                    ? 'a percentage of your gross pay'
+                    : 'what remained after bills'}
+                </li>
+                <li>
+                  <strong>Everything left</strong> is yours to spend guilt-free! 💚
+                </li>
+              </ol>
+              {lastResult && lastResult.meta.supplemental_income > 0 && (
+                <p
+                  style={{
+                    marginTop: 12,
+                    padding: 10,
+                    background: colors.successBg,
+                    borderRadius: 8,
+                    fontSize: 13,
+                    color: colors.success,
+                  }}
+                >
+                  💰 <strong>Bonus tip:</strong> We included ${lastResult.meta.supplemental_income.toFixed(2)} in
+                  expected bonus income to help fund your bills!
+                </p>
+              )}
+            </div>
+          </details>
+
           <button
             style={{
               alignSelf: 'flex-start',
@@ -651,6 +741,7 @@ export default function Dashboard({
               fontWeight: 500,
               transition: 'all 0.2s ease',
               minHeight: '44px',
+              marginTop: 12,
             }}
             onClick={() => setShowDetails((prev) => !prev)}
             onMouseEnter={(e) => {
