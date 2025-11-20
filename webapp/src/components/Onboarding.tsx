@@ -654,7 +654,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
       <ConfirmModal
         isOpen={confirmModal.isOpen}
         title={`Remove ${confirmModal.type || 'item'}?`}
-        message={`Are you sure you want to remove this ${confirmModal.type}? This action cannot be undone.`}
+        message="Are you sure?"
         confirmText="Remove"
         cancelText="Cancel"
         variant="warning"
