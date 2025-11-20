@@ -302,138 +302,231 @@ export default function App() {
             )}
           </div>
           <aside aria-label="Sidebar">
-            <div
-              style={{
-                background: colors.statusGradient,
-                padding: 20,
-                borderRadius: 16,
-                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                color: '#fff',
-              }}
-            >
-              <h4
-                style={{
-                  marginTop: 0,
-                  fontSize: 14,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  opacity: 0.9,
-                }}
-              >
-                Status
-              </h4>
-              <div aria-live="polite" style={{ fontSize: 16, fontWeight: 500 }}>
-                {toastState.show && toastState.variant === 'success' ? '✓ Saved' : 'No changes'}
-              </div>
-            </div>
-
-            <div
-              style={{
-                marginTop: 16,
-                background: colors.cardBg,
-                padding: 20,
-                borderRadius: 16,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                border: `1px solid ${colors.border}`,
-                transition: 'all 0.3s ease',
-              }}
-            >
-              <h4
-                style={{
-                  marginTop: 0,
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: colors.textPrimary,
-                  marginBottom: 16,
-                }}
-              >
-                Data Management
-              </h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <button
-                  onClick={() => {
-                    const data = exportConfig();
-                    const blob = new Blob([data], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `payflow_config_${new Date().toISOString().split('T')[0]}.json`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    trackEvent('configExports');
-                    trackAction('export_config');
-                  }}
-                  aria-label="Export configuration as JSON file"
+            {activeView === 'plan' ? (
+              // Full sidebar for settings view
+              <>
+                <div
                   style={{
-                    padding: '10px 16px',
-                    background: colors.surfaceBg,
-                    border: 'none',
-                    borderRadius: 10,
-                    cursor: 'pointer',
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: colors.textPrimary,
-                    transition: 'all 0.2s ease',
-                    minHeight: 44,
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = colors.border;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = colors.surfaceBg;
+                    background: colors.statusGradient,
+                    padding: 20,
+                    borderRadius: 16,
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                    color: '#fff',
                   }}
                 >
-                  📥 Export config
-                </button>
-
-                <label
-                  style={{ display: 'flex', flexDirection: 'column', gap: 6, cursor: 'pointer' }}
-                >
-                  <span style={{ fontSize: 14, fontWeight: 500, color: colors.textPrimary }}>
-                    📤 Import config
-                  </span>
-                  <input
-                    type="file"
-                    accept="application/json"
-                    aria-label="Import configuration from JSON file"
-                    style={{ fontSize: 13, minHeight: 44 }}
-                    onChange={async (e) => {
-                      const f = e.target.files && e.target.files[0];
-                      if (!f) return;
-                      const text = await f.text();
-                      setConfirmModal({ isOpen: true, action: 'import', importData: text });
-                      e.target.value = ''; // Reset file input
+                  <h4
+                    style={{
+                      marginTop: 0,
+                      fontSize: 14,
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      opacity: 0.9,
                     }}
-                  />
-                </label>
+                  >
+                    Status
+                  </h4>
+                  <div aria-live="polite" style={{ fontSize: 16, fontWeight: 500 }}>
+                    {toastState.show && toastState.variant === 'success' ? '✓ Saved' : 'No changes'}
+                  </div>
+                </div>
 
-                <button
-                  onClick={() => setConfirmModal({ isOpen: true, action: 'clear' })}
-                  aria-label="Clear all configuration data"
+                <div
                   style={{
-                    padding: '10px 16px',
-                    background: colors.errorBg,
-                    border: 'none',
-                    borderRadius: 10,
-                    cursor: 'pointer',
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: colors.error,
-                    transition: 'all 0.2s ease',
-                    minHeight: 44,
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.opacity = '0.8';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.opacity = '1';
+                    marginTop: 16,
+                    background: colors.cardBg,
+                    padding: 20,
+                    borderRadius: 16,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    border: `1px solid ${colors.border}`,
+                    transition: 'all 0.3s ease',
                   }}
                 >
-                  🗑️ Clear config
-                </button>
+                  <h4
+                    style={{
+                      marginTop: 0,
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: colors.textPrimary,
+                      marginBottom: 16,
+                    }}
+                  >
+                    Data Management
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <button
+                      onClick={() => {
+                        const data = exportConfig();
+                        const blob = new Blob([data], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `payflow_config_${new Date().toISOString().split('T')[0]}.json`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        trackEvent('configExports');
+                        trackAction('export_config');
+                      }}
+                      aria-label="Export configuration as JSON file"
+                      style={{
+                        padding: '10px 16px',
+                        background: colors.surfaceBg,
+                        border: 'none',
+                        borderRadius: 10,
+                        cursor: 'pointer',
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: colors.textPrimary,
+                        transition: 'all 0.2s ease',
+                        minHeight: 44,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = colors.border;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = colors.surfaceBg;
+                      }}
+                    >
+                      📥 Export config
+                    </button>
+
+                    <label
+                      style={{ display: 'flex', flexDirection: 'column', gap: 6, cursor: 'pointer' }}
+                    >
+                      <span style={{ fontSize: 14, fontWeight: 500, color: colors.textPrimary }}>
+                        📤 Import config
+                      </span>
+                      <input
+                        type="file"
+                        accept="application/json"
+                        aria-label="Import configuration from JSON file"
+                        style={{ fontSize: 13, minHeight: 44 }}
+                        onChange={async (e) => {
+                          const f = e.target.files && e.target.files[0];
+                          if (!f) return;
+                          const text = await f.text();
+                          setConfirmModal({ isOpen: true, action: 'import', importData: text });
+                          e.target.value = ''; // Reset file input
+                        }}
+                      />
+                    </label>
+
+                    <button
+                      onClick={() => setConfirmModal({ isOpen: true, action: 'clear' })}
+                      aria-label="Clear all configuration data"
+                      style={{
+                        padding: '10px 16px',
+                        background: colors.errorBg,
+                        border: 'none',
+                        borderRadius: 10,
+                        cursor: 'pointer',
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: colors.error,
+                        transition: 'all 0.2s ease',
+                        minHeight: 44,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.opacity = '0.8';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.opacity = '1';
+                      }}
+                    >
+                      🗑️ Clear config
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              // Compact sidebar for other views
+              <div
+                style={{
+                  background: colors.cardBg,
+                  padding: 16,
+                  borderRadius: 16,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                  border: `1px solid ${colors.border}`,
+                  transition: 'all 0.3s ease',
+                }}
+              >
+                <h4
+                  style={{
+                    marginTop: 0,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: colors.textMuted,
+                    marginBottom: 12,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Quick Actions
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <button
+                    onClick={() => {
+                      const data = exportConfig();
+                      const blob = new Blob([data], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `payflow_config_${new Date().toISOString().split('T')[0]}.json`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                      trackEvent('configExports');
+                      trackAction('export_config');
+                    }}
+                    aria-label="Export configuration"
+                    style={{
+                      padding: '8px 12px',
+                      background: colors.surfaceBg,
+                      border: 'none',
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: colors.textSecondary,
+                      transition: 'all 0.2s ease',
+                      minHeight: 36,
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = colors.border;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = colors.surfaceBg;
+                    }}
+                  >
+                    📥 Export
+                  </button>
+                  <button
+                    onClick={() => setActiveView('plan')}
+                    style={{
+                      padding: '8px 12px',
+                      background: colors.surfaceBg,
+                      border: 'none',
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: colors.textSecondary,
+                      transition: 'all 0.2s ease',
+                      minHeight: 36,
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = colors.border;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = colors.surfaceBg;
+                    }}
+                  >
+                    ⚙️ Settings
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </aside>
         </div>
         {toastState.show ? (

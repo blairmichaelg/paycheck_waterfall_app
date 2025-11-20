@@ -203,12 +203,22 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
           {error}
         </div>
       ) : null}
-      <div style={{ marginBottom: 24 }}>
-        <h4
-          style={{ margin: '0 0 12px 0', fontSize: 16, fontWeight: 700, color: colors.textPrimary }}
+      <div style={{ marginBottom: 32 }}>
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            padding: '12px 16px',
+            borderRadius: 12,
+            marginBottom: 16,
+            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+          }}
         >
-          📋 Bills
-        </h4>
+          <h4
+            style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '0.3px' }}
+          >
+            📋 Bills
+          </h4>
+        </div>
         {bills.map((b, i) => (
           <div
             key={i}
@@ -308,12 +318,22 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
         </button>
       </div>
 
-      <div style={{ marginBottom: 24 }}>
-        <h4
-          style={{ margin: '0 0 12px 0', fontSize: 16, fontWeight: 700, color: colors.textPrimary }}
+      <div style={{ marginBottom: 32 }}>
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            padding: '12px 16px',
+            borderRadius: 12,
+            marginBottom: 16,
+            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+          }}
         >
-          🎯 Goals
-        </h4>
+          <h4
+            style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '0.3px' }}
+          >
+            🎯 Goals
+          </h4>
+        </div>
         {goals.map((g, i) => (
           <div
             key={i}
@@ -390,12 +410,22 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
         </button>
       </div>
 
-      <div style={{ marginBottom: 24 }}>
-        <h4
-          style={{ margin: '0 0 12px 0', fontSize: 16, fontWeight: 700, color: colors.textPrimary }}
+      <div style={{ marginBottom: 32 }}>
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+            padding: '12px 16px',
+            borderRadius: 12,
+            marginBottom: 16,
+            boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+          }}
         >
-          ⚙️ Settings
-        </h4>
+          <h4
+            style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '0.3px' }}
+          >
+            ⚙️ Settings
+          </h4>
+        </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <label
             htmlFor={percentApplyFieldId}
@@ -469,12 +499,22 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
         </div>
       </div>
 
-      <div style={{ marginBottom: 24 }}>
-        <h4
-          style={{ margin: '0 0 12px 0', fontSize: 16, fontWeight: 700, color: colors.textPrimary }}
+      <div style={{ marginBottom: 32 }}>
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+            padding: '12px 16px',
+            borderRadius: 12,
+            marginBottom: 16,
+            boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+          }}
         >
-          💰 Bonus / Commission Income
-        </h4>
+          <h4
+            style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '0.3px' }}
+          >
+            💰 Bonus / Supplemental Income
+          </h4>
+        </div>
         {bonuses.length === 0 ? (
           <div style={{ color: colors.textMuted }}>No bonuses configured.</div>
         ) : null}
