@@ -15,7 +15,8 @@ export const ERROR_MESSAGES = {
   SAVE_FAILED: {
     icon: '💾',
     title: "Couldn't Save",
-    message: "Something went wrong, but your changes are safe for now. Try saving again in a moment!",
+    message:
+      'Something went wrong, but your changes are safe for now. Try saving again in a moment!',
     action: 'Retry',
   },
   STORAGE_QUOTA: {
@@ -27,7 +28,8 @@ export const ERROR_MESSAGES = {
   LOAD_FAILED: {
     icon: '📂',
     title: 'Load Issue',
-    message: "Couldn't load your saved settings. Don't worry—we'll start fresh and you can import a backup!",
+    message:
+      "Couldn't load your saved settings. Don't worry—we'll start fresh and you can import a backup!",
     action: 'Import Backup',
   },
 
@@ -82,14 +84,16 @@ export const ERROR_MESSAGES = {
   INVALID_CONFIG: {
     icon: '⚠️',
     title: 'Invalid Configuration',
-    message: 'That config file looks corrupted or is in the wrong format. Try exporting a fresh copy!',
+    message:
+      'That config file looks corrupted or is in the wrong format. Try exporting a fresh copy!',
   },
 
   // General errors
   UNKNOWN_ERROR: {
     icon: '🤔',
     title: 'Something Went Wrong',
-    message: "We're not sure what happened, but don't worry—your data is safe. Try refreshing the page!",
+    message:
+      "We're not sure what happened, but don't worry—your data is safe. Try refreshing the page!",
     action: 'Refresh',
   },
 } as const;

@@ -69,7 +69,7 @@ const SIZE_STYLES = {
 /**
  * Reusable Card component with consistent styling and variants.
  * Reduces code duplication and maintains design system coherence.
- * 
+ *
  * @example
  * ```tsx
  * <Card variant="success" theme={theme}>
@@ -133,7 +133,7 @@ export function StatCard({
   subtitle?: string;
 }) {
   const colors = getThemeColors(theme);
-  
+
   return (
     <Card variant={variant} theme={theme}>
       <div

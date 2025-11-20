@@ -78,11 +78,16 @@ const daysPerCadence: Record<Exclude<(typeof BILL_CADENCES)[number], 'every_payc
  */
 function getDaysPerPaycheck(payFrequency?: (typeof PAY_FREQUENCIES)[number]): number {
   switch (payFrequency) {
-    case 'weekly': return 7;
-    case 'biweekly': return 14;
-    case 'semi_monthly': return 15;
-    case 'monthly': return 30;
-    default: return 14; // Default to biweekly
+    case 'weekly':
+      return 7;
+    case 'biweekly':
+      return 14;
+    case 'semi_monthly':
+      return 15;
+    case 'monthly':
+      return 30;
+    default:
+      return 14; // Default to biweekly
   }
 }
 
@@ -214,23 +219,23 @@ export function allocatePaycheck(
   const bonuses = options.bonuses ?? [];
   const currentDate = options.currentDate ?? new Date();
   const nextPaycheckDate = options.nextPaycheckDate ? new Date(options.nextPaycheckDate) : null;
-  
+
   // Calculate days until next paycheck for prorating
-  const daysUntilNextPaycheck = nextPaycheckDate 
+  const daysUntilNextPaycheck = nextPaycheckDate
     ? getDaysUntilDue(nextPaycheckDate, currentDate)
-    : (options.upcomingDays ?? getDaysPerPaycheck(payFrequency));
+    : options.upcomingDays ?? getDaysPerPaycheck(payFrequency);
 
   // Baseline = minimum paycheck amount (or actual if below minimum)
   const minimum = paycheckRange.min > 0 ? paycheckRange.min : paycheckAmount;
   const baseline = Math.min(paycheckAmount, minimum);
   const extra = Math.max(0, paycheckAmount - minimum);
-  
+
   // Calculate expected bonus income for this period
   const expectedBonuses = bonuses.reduce(
     (sum, bonus) => sum + getExpectedBonus(bonus, daysUntilNextPaycheck),
     0
   );
-  
+
   // Available funds = baseline + expected bonuses
   let availableFunds = baseline + expectedBonuses;
 
@@ -244,14 +249,14 @@ export function allocatePaycheck(
   const billsWithPriority: BillWithPriority[] = bills.map((b) => {
     // Convert legacy dueDay to nextDueDate for unified processing
     const nextDueDate = b.nextDueDate ?? convertDueDayToNextDueDate(b, currentDate);
-    
+
     let daysUntilDue: number | undefined;
     let isUrgent = false;
 
     if (nextDueDate) {
       const dueDate = new Date(nextDueDate);
       daysUntilDue = getDaysUntilDue(dueDate, currentDate);
-      
+
       // Bill is urgent if due before next paycheck
       if (nextPaycheckDate) {
         isUrgent = dueDate < nextPaycheckDate;
@@ -260,9 +265,7 @@ export function allocatePaycheck(
 
     // Sorting: Urgent bills first (sortKey < 1000), then by days until due
     // Non-urgent bills get sortKey >= 1000
-    const sortKey = isUrgent 
-      ? (daysUntilDue ?? 999) 
-      : 1000 + (daysUntilDue ?? 999);
+    const sortKey = isUrgent ? daysUntilDue ?? 999 : 1000 + (daysUntilDue ?? 999);
 
     return {
       ...b,
@@ -277,21 +280,21 @@ export function allocatePaycheck(
 
   // ========== PHASE 3: Allocate to Bills (Single Optimized Pass) ==========
   const billsOut: AllocatedBill[] = [];
-  
+
   // First pass: Allocate baseline to bills in priority order
   for (const b of billsWithPriority) {
     const cadence = b.cadence ?? 'monthly';
     const amount = Number(b.amount ?? 0);
-    
+
     // Calculate required amount for this bill
     const required = calculateBillPortionNeeded(
-      amount, 
-      cadence, 
-      daysUntilNextPaycheck, 
+      amount,
+      cadence,
+      daysUntilNextPaycheck,
       b.daysUntilDue,
       payFrequency
     );
-    
+
     // Allocate from available baseline funds
     const alloc = Math.min(availableFunds, required);
     availableFunds -= alloc;
@@ -309,7 +312,7 @@ export function allocatePaycheck(
   // ========== PHASE 4: Allocate Extra Funds Strategically ==========
   // Strategy: Prioritize urgent bills, then complete partially-funded bills
   let extraRemaining = extra;
-  
+
   // Pass 1: Fund urgent bills first (reduces stress)
   for (const bill of billsOut) {
     if (bill.isUrgent && bill.remaining > 0 && extraRemaining > 0) {
@@ -319,7 +322,7 @@ export function allocatePaycheck(
       extraRemaining -= additionalAlloc;
     }
   }
-  
+
   // Pass 2: Complete bills that can be fully funded (satisfying completion)
   for (const bill of billsOut) {
     if (bill.remaining > 0 && extraRemaining >= bill.remaining) {
@@ -329,14 +332,15 @@ export function allocatePaycheck(
       extraRemaining -= additionalAlloc;
     }
   }
-  
+
   // Remaining funds after all bill allocation
   const remainingAfterBills = availableFunds + extraRemaining;
 
   // ========== PHASE 5: Calculate Goal Desires ==========
-  const baseForPercent = percentApply === 'gross'
-    ? baseline + expectedBonuses + extra // Use full paycheck for percent calculation
-    : remainingAfterBills;
+  const baseForPercent =
+    percentApply === 'gross'
+      ? baseline + expectedBonuses + extra // Use full paycheck for percent calculation
+      : remainingAfterBills;
 
   const goalsDesired: AllocatedGoal[] = goals.map((g) => {
     const gtype = g.type ?? 'percent';
@@ -370,7 +374,7 @@ export function allocatePaycheck(
     // Allocate proportionally
     const factor = cap / desiredTotal;
     let allocatedSum = 0;
-    
+
     for (let i = 0; i < goalsDesired.length; i++) {
       const g = goalsDesired[i];
       // Calculate allocation maintaining precision
@@ -383,9 +387,7 @@ export function allocatePaycheck(
     const roundingGap = cap - allocatedSum;
     if (Math.abs(roundingGap) >= 0.001 && goalsDesired.length > 0) {
       // Give rounding error to largest goal (most fair distribution)
-      const largestGoal = goalsDesired.reduce((max, g) => 
-        g.desired > max.desired ? g : max
-      );
+      const largestGoal = goalsDesired.reduce((max, g) => (g.desired > max.desired ? g : max));
       largestGoal.allocated += roundingGap;
     }
 
@@ -394,13 +396,13 @@ export function allocatePaycheck(
 
   // ========== PHASE 7: Round and Return Results ==========
   return {
-    bills: billsOut.map(b => ({
+    bills: billsOut.map((b) => ({
       ...b,
       required: _round2(b.required),
       allocated: _round2(b.allocated),
       remaining: _round2(b.remaining),
     })),
-    goals: goalsDesired.map(g => ({
+    goals: goalsDesired.map((g) => ({
       ...g,
       desired: _round2(g.desired),
       allocated: _round2(g.allocated),

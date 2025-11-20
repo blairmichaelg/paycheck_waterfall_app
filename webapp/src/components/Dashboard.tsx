@@ -172,14 +172,14 @@ export default function Dashboard({
                 padding: isMobile ? '14px 16px' : '18px 36px',
                 borderRadius: 14,
                 border: 'none',
-                background: isCalculating 
-                  ? colors.border 
+                background: isCalculating
+                  ? colors.border
                   : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                 color: '#fff',
                 fontWeight: 800,
                 fontSize: isMobile ? 15 : 18,
-                boxShadow: isCalculating 
-                  ? '0 4px 12px rgba(0,0,0,0.1)' 
+                boxShadow: isCalculating
+                  ? '0 4px 12px rgba(0,0,0,0.1)'
                   : '0 8px 28px rgba(16, 185, 129, 0.5)',
                 cursor: isCalculating ? 'wait' : 'pointer',
                 transition: 'all 0.3s ease',
@@ -206,7 +206,11 @@ export default function Dashboard({
                 }
               }}
             >
-              {isCalculating ? '⏳ Calculating...' : (isMobile ? '🎉 Got Paid!' : '🎉 I Got Paid!! 💰')}
+              {isCalculating
+                ? '⏳ Calculating...'
+                : isMobile
+                ? '🎉 Got Paid!'
+                : '🎉 I Got Paid!! 💰'}
             </button>
           </div>
         </label>
@@ -281,9 +285,9 @@ export default function Dashboard({
 
           {/* Celebration Banner */}
           {(() => {
-            const fullyFundedCount = lastResult.bills.filter(b => b.remaining === 0).length;
+            const fullyFundedCount = lastResult.bills.filter((b) => b.remaining === 0).length;
             const totalBills = lastResult.bills.length;
-            
+
             if (totalBills > 0 && fullyFundedCount === totalBills) {
               return (
                 <div
@@ -690,12 +694,22 @@ export default function Dashboard({
               }}
             >
               <p style={{ margin: '0 0 12px 0', color: colors.textPrimary }}>
-                Your paycheck of <strong>{lastResult ? `${lastResult.meta.paycheck.toFixed(2)}` : '0.00'}</strong> was
-                allocated like this:
+                Your paycheck of{' '}
+                <strong>{lastResult ? `${lastResult.meta.paycheck.toFixed(2)}` : '0.00'}</strong>{' '}
+                was allocated like this:
               </p>
-              <ol style={{ margin: 0, paddingLeft: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <ol
+                style={{
+                  margin: 0,
+                  paddingLeft: 24,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
+                }}
+              >
                 <li>
-                  <strong>Bills due before next paycheck</strong> were funded first (reduces stress!)
+                  <strong>Bills due before next paycheck</strong> were funded first (reduces
+                  stress!)
                 </li>
                 <li>
                   <strong>Extra money</strong> went to complete partial bills when possible
@@ -721,8 +735,9 @@ export default function Dashboard({
                     color: colors.success,
                   }}
                 >
-                  💰 <strong>Bonus tip:</strong> We included ${lastResult.meta.supplemental_income.toFixed(2)} in
-                  expected bonus income to help fund your bills!
+                  💰 <strong>Bonus tip:</strong> We included $
+                  {lastResult.meta.supplemental_income.toFixed(2)} in expected bonus income to help
+                  fund your bills!
                 </p>
               )}
             </div>
@@ -783,8 +798,8 @@ export default function Dashboard({
             transition: 'background 0.3s ease',
           }}
         >
-          👆 Enter your paycheck amount above and click the green <strong>&ldquo;I Got Paid!!&rdquo;</strong>{' '}
-          button to see your guilt-free spending!
+          👆 Enter your paycheck amount above and click the green{' '}
+          <strong>&ldquo;I Got Paid!!&rdquo;</strong> button to see your guilt-free spending!
         </div>
       )}
     </div>

@@ -80,7 +80,16 @@ export default function Header({ lastAllocation, theme, onToggleTheme }: HeaderP
           >
             Your Guilt-Free Spending
           </div>
-          <div style={{ fontSize: isMobile ? 48 : 96, fontWeight: 900, color: '#fff', marginTop: isMobile ? 4 : 12, lineHeight: 0.95, textShadow: '0 6px 16px rgba(0,0,0,0.25)' }}>
+          <div
+            style={{
+              fontSize: isMobile ? 48 : 96,
+              fontWeight: 900,
+              color: '#fff',
+              marginTop: isMobile ? 4 : 12,
+              lineHeight: 0.95,
+              textShadow: '0 6px 16px rgba(0,0,0,0.25)',
+            }}
+          >
             ${guiltFree.toFixed(2)}
           </div>
           <div

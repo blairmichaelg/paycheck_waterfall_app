@@ -114,7 +114,14 @@ export default function WelcomeModal({
                 1
               </div>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary, marginBottom: 4 }}>
+                <div
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 700,
+                    color: colors.textPrimary,
+                    marginBottom: 4,
+                  }}
+                >
                   Add Your Bills
                 </div>
                 <div style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 1.5 }}>
@@ -142,7 +149,14 @@ export default function WelcomeModal({
                 2
               </div>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary, marginBottom: 4 }}>
+                <div
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 700,
+                    color: colors.textPrimary,
+                    marginBottom: 4,
+                  }}
+                >
                   Set Goals (Optional)
                 </div>
                 <div style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 1.5 }}>
@@ -170,7 +184,14 @@ export default function WelcomeModal({
                 3
               </div>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary, marginBottom: 4 }}>
+                <div
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 700,
+                    color: colors.textPrimary,
+                    marginBottom: 4,
+                  }}
+                >
                   Enter Your Paycheck
                 </div>
                 <div style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 1.5 }}>
@@ -191,8 +212,8 @@ export default function WelcomeModal({
           }}
         >
           <div style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 1.6 }}>
-            <strong style={{ color: colors.textPrimary }}>🔒 Privacy First:</strong> All your data stays in your browser. 
-            Nothing is sent to any server. Ever.
+            <strong style={{ color: colors.textPrimary }}>🔒 Privacy First:</strong> All your data
+            stays in your browser. Nothing is sent to any server. Ever.
           </div>
         </div>
 

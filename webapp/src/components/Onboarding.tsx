@@ -219,7 +219,9 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
       ) : null}
       <div style={{ marginBottom: 32 }}>
         <button
-          onClick={() => setExpandedSections({ ...expandedSections, bills: !expandedSections.bills })}
+          onClick={() =>
+            setExpandedSections({ ...expandedSections, bills: !expandedSections.bills })
+          }
           style={{
             width: '100%',
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -236,139 +238,153 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
           }}
         >
           <h4
-            style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '0.3px' }}
+            style={{
+              margin: 0,
+              fontSize: 16,
+              fontWeight: 700,
+              color: '#fff',
+              letterSpacing: '0.3px',
+            }}
           >
             📋 Bills {bills.length > 0 && `(${bills.length})`}
           </h4>
-          <span style={{ color: '#fff', fontSize: 20 }}>
-            {expandedSections.bills ? '−' : '+'}
-          </span>
+          <span style={{ color: '#fff', fontSize: 20 }}>{expandedSections.bills ? '−' : '+'}</span>
         </button>
         {expandedSections.bills && (
-        <div style={{ animation: 'fadeIn 0.2s ease' }}>
-        {bills.length === 0 && (
-          <div
-            style={{
-              textAlign: 'center',
-              padding: '32px 16px',
-              background: colors.surfaceBg,
-              borderRadius: 12,
-              marginBottom: 16,
-            }}
-          >
-            <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
-            <div style={{ fontSize: 16, fontWeight: 600, color: colors.textPrimary, marginBottom: 8 }}>
-              Add your first bill to get started!
-            </div>
-            <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6 }}>
-              Don&apos;t worry—you can always edit or remove it later. Just add the basics and we&apos;ll help you allocate funds!
-            </div>
-          </div>
-        )}
-        {bills.map((b, i) => (
-          <div
-            key={i}
-            style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}
-          >
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input
-                placeholder="name"
-                value={b.name}
-                onChange={(e) => {
-                  const next = [...bills];
-                  next[i].name = e.target.value;
-                  setBills(next);
+          <div style={{ animation: 'fadeIn 0.2s ease' }}>
+            {bills.length === 0 && (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '32px 16px',
+                  background: colors.surfaceBg,
+                  borderRadius: 12,
+                  marginBottom: 16,
                 }}
-                style={{ flex: 1 }}
-              />
-              <input
-                type="number"
-                step="0.01"
-                placeholder="amount"
-                value={b.amount ?? ''}
-                onChange={(e) => {
-                  const next = [...bills];
-                  next[i].amount = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                  setBills(next);
-                }}
-                style={{ width: 120 }}
-              />
-            </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
-                  Frequency
-                </span>
-                <select
-                  value={b.cadence}
-                  onChange={(e) => {
-                    const next = [...bills];
-                    next[i].cadence = e.target.value as Bill['cadence'];
-                    setBills(next);
+              >
+                <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
+                <div
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 600,
+                    color: colors.textPrimary,
+                    marginBottom: 8,
                   }}
                 >
-                  {BILL_CADENCES.map((cadence) => (
-                    <option key={cadence} value={cadence}>
-                      {cadence.replace('_', ' ')}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {b.cadence === 'monthly' && (
-                <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
-                    Due day (1-31)
-                  </span>
+                  Add your first bill to get started!
+                </div>
+                <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6 }}>
+                  Don&apos;t worry—you can always edit or remove it later. Just add the basics and
+                  we&apos;ll help you allocate funds!
+                </div>
+              </div>
+            )}
+            {bills.map((b, i) => (
+              <div
+                key={i}
+                style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}
+              >
+                <div style={{ display: 'flex', gap: 8 }}>
                   <input
-                    type="number"
-                    placeholder="day"
-                    value={b.dueDay ?? ''}
-                    min={1}
-                    max={31}
+                    placeholder="name"
+                    value={b.name}
                     onChange={(e) => {
                       const next = [...bills];
-                      const value = e.target.value === '' ? undefined : Number(e.target.value);
-                      next[i].dueDay = value;
+                      next[i].name = e.target.value;
                       setBills(next);
                     }}
-                    style={{ width: 80 }}
+                    style={{ flex: 1 }}
                   />
-                </label>
-              )}
-              <button
-                onClick={() => removeBill(i)}
-                aria-label={`remove-bill-${i}`}
-                style={{ alignSelf: 'flex-end', minHeight: '44px' }}
-              >
-                Remove
-              </button>
-            </div>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="amount"
+                    value={b.amount ?? ''}
+                    onChange={(e) => {
+                      const next = [...bills];
+                      next[i].amount = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                      setBills(next);
+                    }}
+                    style={{ width: 120 }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                      Frequency
+                    </span>
+                    <select
+                      value={b.cadence}
+                      onChange={(e) => {
+                        const next = [...bills];
+                        next[i].cadence = e.target.value as Bill['cadence'];
+                        setBills(next);
+                      }}
+                    >
+                      {BILL_CADENCES.map((cadence) => (
+                        <option key={cadence} value={cadence}>
+                          {cadence.replace('_', ' ')}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {b.cadence === 'monthly' && (
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                        Due day (1-31)
+                      </span>
+                      <input
+                        type="number"
+                        placeholder="day"
+                        value={b.dueDay ?? ''}
+                        min={1}
+                        max={31}
+                        onChange={(e) => {
+                          const next = [...bills];
+                          const value = e.target.value === '' ? undefined : Number(e.target.value);
+                          next[i].dueDay = value;
+                          setBills(next);
+                        }}
+                        style={{ width: 80 }}
+                      />
+                    </label>
+                  )}
+                  <button
+                    onClick={() => removeBill(i)}
+                    aria-label={`remove-bill-${i}`}
+                    style={{ alignSelf: 'flex-end', minHeight: '44px' }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+            <button
+              onClick={addBill}
+              style={{
+                padding: '8px 16px',
+                background: colors.surfaceBg,
+                border: 'none',
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontSize: 14,
+                fontWeight: 500,
+                color: colors.textPrimary,
+                minHeight: '44px',
+                transition: 'background 0.2s ease',
+              }}
+            >
+              + Add bill
+            </button>
           </div>
-        ))}
-        <button
-          onClick={addBill}
-          style={{
-            padding: '8px 16px',
-            background: colors.surfaceBg,
-            border: 'none',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontSize: 14,
-            fontWeight: 500,
-            color: colors.textPrimary,
-            minHeight: '44px',
-            transition: 'background 0.2s ease',
-          }}
-        >
-          + Add bill
-        </button>
-        </div>
         )}
       </div>
 
       <div style={{ marginBottom: 32 }}>
         <button
-          onClick={() => setExpandedSections({ ...expandedSections, goals: !expandedSections.goals })}
+          onClick={() =>
+            setExpandedSections({ ...expandedSections, goals: !expandedSections.goals })
+          }
           style={{
             width: '100%',
             background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
@@ -385,116 +401,132 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
           }}
         >
           <h4
-            style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '0.3px' }}
+            style={{
+              margin: 0,
+              fontSize: 16,
+              fontWeight: 700,
+              color: '#fff',
+              letterSpacing: '0.3px',
+            }}
           >
             🎯 Goals {goals.length > 0 && `(${goals.length})`}
           </h4>
-          <span style={{ color: '#fff', fontSize: 20 }}>
-            {expandedSections.goals ? '−' : '+'}
-          </span>
+          <span style={{ color: '#fff', fontSize: 20 }}>{expandedSections.goals ? '−' : '+'}</span>
         </button>
         {expandedSections.goals && (
-        <div style={{ animation: 'fadeIn 0.2s ease' }}>
-        {goals.length === 0 && (
-          <div
-            style={{
-              textAlign: 'center',
-              padding: '32px 16px',
-              background: colors.surfaceBg,
-              borderRadius: 12,
-              marginBottom: 16,
-            }}
-          >
-            <div style={{ fontSize: 48, marginBottom: 12 }}>🎯</div>
-            <div style={{ fontSize: 16, fontWeight: 600, color: colors.textPrimary, marginBottom: 8 }}>
-              Set your first savings goal!
-            </div>
-            <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6 }}>
-              Goals help you save automatically. Add a goal as a percentage or fixed amount—we&apos;ll handle the math!
-            </div>
-          </div>
-        )}
-        {goals.map((g, i) => (
-          <div
-            key={i}
-            style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}
-          >
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-              <input
-                placeholder="name"
-                value={g.name}
-                onChange={(e) => {
-                  const next = [...goals];
-                  next[i].name = e.target.value;
-                  setGoals(next);
+          <div style={{ animation: 'fadeIn 0.2s ease' }}>
+            {goals.length === 0 && (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '32px 16px',
+                  background: colors.surfaceBg,
+                  borderRadius: 12,
+                  marginBottom: 16,
                 }}
-                style={{ flex: 1, minWidth: 150 }}
-              />
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>Type</span>
-                <select
-                  value={g.type}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                    const next = [...goals];
-                    next[i].type = e.target.value as Goal['type'];
-                    setGoals(next);
+              >
+                <div style={{ fontSize: 48, marginBottom: 12 }}>🎯</div>
+                <div
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 600,
+                    color: colors.textPrimary,
+                    marginBottom: 8,
                   }}
                 >
-                  <option value="percent">percent</option>
-                  <option value="fixed">fixed</option>
-                </select>
-              </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
-                  Value
-                </span>
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="value"
-                  value={g.value ?? ''}
-                  onChange={(e) => {
-                    const next = [...goals];
-                    next[i].value = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                    setGoals(next);
-                  }}
-                  style={{ width: 100 }}
-                />
-              </label>
-              <button
-                onClick={() => removeGoal(i)}
-                aria-label={`remove-goal-${i}`}
-                style={{ alignSelf: 'flex-end', minHeight: '44px' }}
+                  Set your first savings goal!
+                </div>
+                <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6 }}>
+                  Goals help you save automatically. Add a goal as a percentage or fixed
+                  amount—we&apos;ll handle the math!
+                </div>
+              </div>
+            )}
+            {goals.map((g, i) => (
+              <div
+                key={i}
+                style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}
               >
-                Remove
-              </button>
-            </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <input
+                    placeholder="name"
+                    value={g.name}
+                    onChange={(e) => {
+                      const next = [...goals];
+                      next[i].name = e.target.value;
+                      setGoals(next);
+                    }}
+                    style={{ flex: 1, minWidth: 150 }}
+                  />
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                      Type
+                    </span>
+                    <select
+                      value={g.type}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                        const next = [...goals];
+                        next[i].type = e.target.value as Goal['type'];
+                        setGoals(next);
+                      }}
+                    >
+                      <option value="percent">percent</option>
+                      <option value="fixed">fixed</option>
+                    </select>
+                  </label>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                      Value
+                    </span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="value"
+                      value={g.value ?? ''}
+                      onChange={(e) => {
+                        const next = [...goals];
+                        next[i].value = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                        setGoals(next);
+                      }}
+                      style={{ width: 100 }}
+                    />
+                  </label>
+                  <button
+                    onClick={() => removeGoal(i)}
+                    aria-label={`remove-goal-${i}`}
+                    style={{ alignSelf: 'flex-end', minHeight: '44px' }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+            <button
+              onClick={addGoal}
+              style={{
+                padding: '8px 16px',
+                background: colors.surfaceBg,
+                border: 'none',
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontSize: 14,
+                fontWeight: 500,
+                color: colors.textPrimary,
+                minHeight: '44px',
+                transition: 'background 0.2s ease',
+              }}
+            >
+              + Add goal
+            </button>
           </div>
-        ))}
-        <button
-          onClick={addGoal}
-          style={{
-            padding: '8px 16px',
-            background: colors.surfaceBg,
-            border: 'none',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontSize: 14,
-            fontWeight: 500,
-            color: colors.textPrimary,
-            minHeight: '44px',
-            transition: 'background 0.2s ease',
-          }}
-        >
-          + Add goal
-        </button>
-        </div>
         )}
       </div>
 
       <div style={{ marginBottom: 32 }}>
         <button
-          onClick={() => setExpandedSections({ ...expandedSections, settings: !expandedSections.settings })}
+          onClick={() =>
+            setExpandedSections({ ...expandedSections, settings: !expandedSections.settings })
+          }
           style={{
             width: '100%',
             background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
@@ -511,7 +543,13 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
           }}
         >
           <h4
-            style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '0.3px' }}
+            style={{
+              margin: 0,
+              fontSize: 16,
+              fontWeight: 700,
+              color: '#fff',
+              letterSpacing: '0.3px',
+            }}
           >
             ⚙️ Settings
           </h4>
@@ -520,85 +558,91 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
           </span>
         </button>
         {expandedSections.settings && (
-        <div style={{ animation: 'fadeIn 0.2s ease' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <label
-            htmlFor={percentApplyFieldId}
-            style={{ display: 'flex', flexDirection: 'column', gap: 4 }}
-          >
-            <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
-              Percent goals apply to
-            </span>
-            <select
-              id={percentApplyFieldId}
-              value={percentApply}
-              onChange={(e) =>
-                setPercentApply(e.target.value as UserConfig['settings']['percentApply'])
-              }
-            >
-              <option value="gross">Gross (whole paycheck)</option>
-              <option value="remainder">Remainder after bills</option>
-            </select>
-          </label>
+          <div style={{ animation: 'fadeIn 0.2s ease' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <label
+                htmlFor={percentApplyFieldId}
+                style={{ display: 'flex', flexDirection: 'column', gap: 4 }}
+              >
+                <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                  Percent goals apply to
+                </span>
+                <select
+                  id={percentApplyFieldId}
+                  value={percentApply}
+                  onChange={(e) =>
+                    setPercentApply(e.target.value as UserConfig['settings']['percentApply'])
+                  }
+                >
+                  <option value="gross">Gross (whole paycheck)</option>
+                  <option value="remainder">Remainder after bills</option>
+                </select>
+              </label>
 
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
-              Pay frequency
-            </span>
-            <select
-              value={payFrequency}
-              onChange={(e) =>
-                setPayFrequency(e.target.value as UserConfig['settings']['payFrequency'])
-              }
-            >
-              {PAY_FREQUENCIES.map((freq) => (
-                <option key={freq} value={freq}>
-                  {freq.replace('_', ' ')}
-                </option>
-              ))}
-            </select>
-          </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                  Pay frequency
+                </span>
+                <select
+                  value={payFrequency}
+                  onChange={(e) =>
+                    setPayFrequency(e.target.value as UserConfig['settings']['payFrequency'])
+                  }
+                >
+                  {PAY_FREQUENCIES.map((freq) => (
+                    <option key={freq} value={freq}>
+                      {freq.replace('_', ' ')}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-          <div
-            style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}
-          >
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
-                Paycheck range - Min amount
-              </span>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="e.g. 800"
-                value={paycheckMin || ''}
-                onChange={(e) =>
-                  setPaycheckMin(e.target.value === '' ? 0 : parseFloat(e.target.value))
-                }
-              />
-            </label>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
-                Paycheck range - Max amount
-              </span>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="e.g. 1200"
-                value={paycheckMax || ''}
-                onChange={(e) =>
-                  setPaycheckMax(e.target.value === '' ? 0 : parseFloat(e.target.value))
-                }
-              />
-            </label>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                  gap: 12,
+                }}
+              >
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                    Paycheck range - Min amount
+                  </span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="e.g. 800"
+                    value={paycheckMin || ''}
+                    onChange={(e) =>
+                      setPaycheckMin(e.target.value === '' ? 0 : parseFloat(e.target.value))
+                    }
+                  />
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                    Paycheck range - Max amount
+                  </span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="e.g. 1200"
+                    value={paycheckMax || ''}
+                    onChange={(e) =>
+                      setPaycheckMax(e.target.value === '' ? 0 : parseFloat(e.target.value))
+                    }
+                  />
+                </label>
+              </div>
+            </div>
           </div>
-        </div>
-        </div>
         )}
       </div>
 
       <div style={{ marginBottom: 32 }}>
         <button
-          onClick={() => setExpandedSections({ ...expandedSections, bonuses: !expandedSections.bonuses })}
+          onClick={() =>
+            setExpandedSections({ ...expandedSections, bonuses: !expandedSections.bonuses })
+          }
           style={{
             width: '100%',
             background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
@@ -615,7 +659,13 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
           }}
         >
           <h4
-            style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '0.3px' }}
+            style={{
+              margin: 0,
+              fontSize: 16,
+              fontWeight: 700,
+              color: '#fff',
+              letterSpacing: '0.3px',
+            }}
           >
             💰 Bonus Income {bonuses.length > 0 && `(${bonuses.length})`}
           </h4>
@@ -624,132 +674,140 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
           </span>
         </button>
         {expandedSections.bonuses && (
-        <div style={{ animation: 'fadeIn 0.2s ease' }}>
-        {bonuses.length === 0 && (
-          <div
-            style={{
-              textAlign: 'center',
-              padding: '32px 16px',
-              background: colors.surfaceBg,
-              borderRadius: 12,
-              marginBottom: 16,
-            }}
-          >
-            <div style={{ fontSize: 48, marginBottom: 12 }}>💰</div>
-            <div style={{ fontSize: 16, fontWeight: 600, color: colors.textPrimary, marginBottom: 8 }}>
-              Track bonus income (optional)
-            </div>
-            <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6 }}>
-              Got tips, commissions, or variable income? Add them here so we can factor them into your budget!
-            </div>
-          </div>
-        )}
-        {bonuses.map((bonus, i) => (
-          <div
-            key={`${bonusId}-${i}`}
-            style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}
-          >
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-              <input
-                type="text"
-                placeholder="name"
-                value={bonus.name}
-                onChange={(e) => {
-                  const next = [...bonuses];
-                  next[i].name = e.target.value;
-                  setBonuses(next);
+          <div style={{ animation: 'fadeIn 0.2s ease' }}>
+            {bonuses.length === 0 && (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '32px 16px',
+                  background: colors.surfaceBg,
+                  borderRadius: 12,
+                  marginBottom: 16,
                 }}
-                style={{ flex: 1, minWidth: 150 }}
-              />
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
-                  Frequency
-                </span>
-                <select
-                  value={bonus.cadence}
-                  onChange={(e) => {
-                    const next = [...bonuses];
-                    next[i].cadence = e.target.value as BonusIncome['cadence'];
-                    setBonuses(next);
+              >
+                <div style={{ fontSize: 48, marginBottom: 12 }}>💰</div>
+                <div
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 600,
+                    color: colors.textPrimary,
+                    marginBottom: 8,
                   }}
                 >
-                  {BILL_CADENCES.map((cadence) => (
-                    <option key={cadence} value={cadence}>
-                      {cadence.replace('_', ' ')}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
-                  Min amount
-                </span>
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="min"
-                  value={bonus.range.min || ''}
-                  onChange={(e) => {
-                    const next = [...bonuses];
-                    next[i].range.min = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                    setBonuses(next);
-                  }}
-                  style={{ width: 100 }}
-                />
-              </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
-                  Max amount
-                </span>
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="max"
-                  value={bonus.range.max || ''}
-                  onChange={(e) => {
-                    const next = [...bonuses];
-                    next[i].range.max = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                    setBonuses(next);
-                  }}
-                  style={{ width: 100 }}
-                />
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <input
-                  type="checkbox"
-                  checked={bonus.recurring}
-                  onChange={(e) => {
-                    const next = [...bonuses];
-                    next[i].recurring = e.target.checked;
-                    setBonuses(next);
-                  }}
-                />
-                Recurring
-              </label>
-              <button onClick={() => removeBonus(i)}>Remove</button>
-            </div>
+                  Track bonus income (optional)
+                </div>
+                <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6 }}>
+                  Got tips, commissions, or variable income? Add them here so we can factor them
+                  into your budget!
+                </div>
+              </div>
+            )}
+            {bonuses.map((bonus, i) => (
+              <div
+                key={`${bonusId}-${i}`}
+                style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}
+              >
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="name"
+                    value={bonus.name}
+                    onChange={(e) => {
+                      const next = [...bonuses];
+                      next[i].name = e.target.value;
+                      setBonuses(next);
+                    }}
+                    style={{ flex: 1, minWidth: 150 }}
+                  />
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                      Frequency
+                    </span>
+                    <select
+                      value={bonus.cadence}
+                      onChange={(e) => {
+                        const next = [...bonuses];
+                        next[i].cadence = e.target.value as BonusIncome['cadence'];
+                        setBonuses(next);
+                      }}
+                    >
+                      {BILL_CADENCES.map((cadence) => (
+                        <option key={cadence} value={cadence}>
+                          {cadence.replace('_', ' ')}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                      Min amount
+                    </span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="min"
+                      value={bonus.range.min || ''}
+                      onChange={(e) => {
+                        const next = [...bonuses];
+                        next[i].range.min = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                        setBonuses(next);
+                      }}
+                      style={{ width: 100 }}
+                    />
+                  </label>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
+                      Max amount
+                    </span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="max"
+                      value={bonus.range.max || ''}
+                      onChange={(e) => {
+                        const next = [...bonuses];
+                        next[i].range.max = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                        setBonuses(next);
+                      }}
+                      style={{ width: 100 }}
+                    />
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <input
+                      type="checkbox"
+                      checked={bonus.recurring}
+                      onChange={(e) => {
+                        const next = [...bonuses];
+                        next[i].recurring = e.target.checked;
+                        setBonuses(next);
+                      }}
+                    />
+                    Recurring
+                  </label>
+                  <button onClick={() => removeBonus(i)}>Remove</button>
+                </div>
+              </div>
+            ))}
+            <button
+              onClick={addBonus}
+              style={{
+                padding: '8px 16px',
+                background: colors.surfaceBg,
+                border: 'none',
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontSize: 14,
+                fontWeight: 500,
+                color: colors.textPrimary,
+                minHeight: '44px',
+                transition: 'background 0.2s ease',
+              }}
+            >
+              + Add bonus
+            </button>
           </div>
-        ))}
-        <button
-          onClick={addBonus}
-          style={{
-            padding: '8px 16px',
-            background: colors.surfaceBg,
-            border: 'none',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontSize: 14,
-            fontWeight: 500,
-            color: colors.textPrimary,
-            minHeight: '44px',
-            transition: 'background 0.2s ease',
-          }}
-        >
-          + Add bonus
-        </button>
-        </div>
         )}
       </div>
 

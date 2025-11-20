@@ -6,7 +6,18 @@ import Breakdown from './components/Breakdown';
 import Toast from './components/Toast';
 import ConfirmModal from './components/ConfirmModal';
 import WelcomeModal from './components/WelcomeModal';
-import { loadConfig, saveConfig, exportConfig, importConfig, clearConfig, saveAllocation, loadAllocation, backupConfig, restoreConfigFromBackup, hasValidBackup } from './lib/storage';
+import {
+  loadConfig,
+  saveConfig,
+  exportConfig,
+  importConfig,
+  clearConfig,
+  saveAllocation,
+  loadAllocation,
+  backupConfig,
+  restoreConfigFromBackup,
+  hasValidBackup,
+} from './lib/storage';
 import { trackAction } from './lib/observability';
 import { loadTheme, saveTheme, getThemeColors, type Theme } from './lib/theme';
 import { trackSession, trackEvent } from './lib/analytics';
@@ -35,7 +46,9 @@ export default function App() {
   }>({ show: false, message: '', variant: 'success' });
   const [lastSavedAt, setLastSavedAt] = useState(() => Date.now());
   const [activeView, setActiveView] = useState<'spend' | 'breakdown' | 'plan'>('spend');
-  const [lastAllocation, setLastAllocation] = useState<AllocationResult | null>(() => loadAllocation());
+  const [lastAllocation, setLastAllocation] = useState<AllocationResult | null>(() =>
+    loadAllocation()
+  );
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
   const [theme, setTheme] = useState<Theme>(() => loadTheme());
   const [confirmModal, setConfirmModal] = useState<{
@@ -130,7 +143,7 @@ export default function App() {
       };
       saveConfig(updatedConfig);
       setConfig(updatedConfig);
-      
+
       if (newMin !== currentRange.min) {
         showToast(`Updated min to ${formatCurrency(newMin)}`, 'info');
       }
@@ -140,13 +153,12 @@ export default function App() {
     }
 
     // Process the paycheck using Dashboard's allocation logic
-    const settings = updated ? { ...config.settings, paycheckRange: { min: newMin, max: newMax } } : config.settings;
+    const settings = updated
+      ? { ...config.settings, paycheckRange: { min: newMin, max: newMax } }
+      : config.settings;
     const percentApply = settings?.percentApply ?? 'gross';
-    const upcomingDays = settings?.payFrequency === 'weekly'
-      ? 7
-      : settings?.payFrequency === 'monthly'
-      ? 30
-      : 14;
+    const upcomingDays =
+      settings?.payFrequency === 'weekly' ? 7 : settings?.payFrequency === 'monthly' ? 30 : 14;
 
     try {
       const result = allocatePaycheck(amount, config.bills, config.goals, {
@@ -158,7 +170,10 @@ export default function App() {
       });
       setLastAllocation(result);
       setActiveView('spend'); // Switch to main view to see results
-      showToast(`Paycheck allocated! You have ${formatCurrency(result.guilt_free)} guilt-free!`, 'success');
+      showToast(
+        `Paycheck allocated! You have ${formatCurrency(result.guilt_free)} guilt-free!`,
+        'success'
+      );
       trackEvent('paycheckCalculations');
       trackAction('run_allocation', { paycheck: amount, guilt_free: result.guilt_free });
     } catch (err) {
@@ -178,7 +193,7 @@ export default function App() {
     };
     saveConfig(updatedConfig);
     setConfig(updatedConfig);
-    
+
     if (newMin !== currentRange.min) {
       showToast(`Updated min to ${formatCurrency(newMin)}`, 'info');
     }
@@ -225,16 +240,20 @@ export default function App() {
           }}
         >
           {[
-            { 
-              id: 'spend', 
-              label: lastAllocation 
-                ? (isMobile ? `💚 $${lastAllocation.guilt_free.toFixed(0)}` : `💚 $${lastAllocation.guilt_free.toFixed(0)} Guilt-Free`)
-                : (isMobile ? '💰 Got Paid' : '💰 I Got Paid')
+            {
+              id: 'spend',
+              label: lastAllocation
+                ? isMobile
+                  ? `💚 $${lastAllocation.guilt_free.toFixed(0)}`
+                  : `💚 $${lastAllocation.guilt_free.toFixed(0)} Guilt-Free`
+                : isMobile
+                ? '💰 Got Paid'
+                : '💰 I Got Paid',
             },
-            { 
-              id: 'breakdown', 
+            {
+              id: 'breakdown',
               label: isMobile ? '🌊 Waterfall' : '🌊 See Waterfall',
-              disabled: !lastAllocation
+              disabled: !lastAllocation,
             },
             { id: 'plan', label: isMobile ? '⚙️ Settings' : '⚙️ Plan & Settings' },
           ].map((tab) => (
@@ -253,11 +272,16 @@ export default function App() {
                   e.preventDefault();
                   // Cycle through enabled tabs
                   if (lastAllocation) {
-                    const views: Array<'spend' | 'breakdown' | 'plan'> = ['spend', 'breakdown', 'plan'];
+                    const views: Array<'spend' | 'breakdown' | 'plan'> = [
+                      'spend',
+                      'breakdown',
+                      'plan',
+                    ];
                     const currentIndex = views.indexOf(activeView);
-                    const nextIndex = e.key === 'ArrowRight' 
-                      ? (currentIndex + 1) % views.length
-                      : (currentIndex - 1 + views.length) % views.length;
+                    const nextIndex =
+                      e.key === 'ArrowRight'
+                        ? (currentIndex + 1) % views.length
+                        : (currentIndex - 1 + views.length) % views.length;
                     setActiveView(views[nextIndex]);
                   } else {
                     setActiveView(activeView === 'spend' ? 'plan' : 'spend');
@@ -271,14 +295,19 @@ export default function App() {
                 borderRadius: 12,
                 border: 'none',
                 background: activeView === tab.id ? colors.primaryGradient : 'transparent',
-                color: ('disabled' in tab && tab.disabled) ? colors.textMuted : (activeView === tab.id ? '#fff' : colors.textSecondary),
-                cursor: ('disabled' in tab && tab.disabled) ? 'not-allowed' : 'pointer',
+                color:
+                  'disabled' in tab && tab.disabled
+                    ? colors.textMuted
+                    : activeView === tab.id
+                    ? '#fff'
+                    : colors.textSecondary,
+                cursor: 'disabled' in tab && tab.disabled ? 'not-allowed' : 'pointer',
                 fontWeight: activeView === tab.id ? 600 : 500,
                 fontSize: 15,
                 transition: 'all 0.2s ease',
                 boxShadow: activeView === tab.id ? '0 4px 12px rgba(102, 126, 234, 0.4)' : 'none',
                 minHeight: 44,
-                opacity: ('disabled' in tab && tab.disabled) ? 0.5 : 1,
+                opacity: 'disabled' in tab && tab.disabled ? 0.5 : 1,
               }}
             >
               {tab.label}
@@ -306,7 +335,9 @@ export default function App() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
               <span style={{ fontSize: 24 }}>💾</span>
               <div>
-                <div style={{ color: colors.success, fontSize: 14, fontWeight: 600, marginBottom: 2 }}>
+                <div
+                  style={{ color: colors.success, fontSize: 14, fontWeight: 600, marginBottom: 2 }}
+                >
                   Backup Available
                 </div>
                 <div style={{ color: colors.textSecondary, fontSize: 13 }}>
@@ -381,67 +412,104 @@ export default function App() {
               />
             ) : activeView === 'breakdown' ? (
               lastAllocation ? (
-                <Breakdown allocation={lastAllocation} config={config} theme={theme} onNewPaycheck={handleQuickPaycheck} />
+                <Breakdown
+                  allocation={lastAllocation}
+                  config={config}
+                  theme={theme}
+                  onNewPaycheck={handleQuickPaycheck}
+                />
               ) : (
                 <div style={{ padding: isMobile ? 24 : 48, textAlign: 'center' }}>
                   <div style={{ fontSize: 48, marginBottom: 16 }}>🌊</div>
-                  <div style={{ fontSize: 18, fontWeight: 600, color: colors.textPrimary, marginBottom: 12 }}>
+                  <div
+                    style={{
+                      fontSize: 18,
+                      fontWeight: 600,
+                      color: colors.textPrimary,
+                      marginBottom: 12,
+                    }}
+                  >
                     Your Waterfall Awaits!
                   </div>
-                  <div style={{ fontSize: 14, color: colors.textMuted, marginBottom: 32, maxWidth: 400, margin: '0 auto 32px' }}>
-                    See how your paycheck flows through bills and goals like a waterfall. Run a calculation first!
+                  <div
+                    style={{
+                      fontSize: 14,
+                      color: colors.textMuted,
+                      marginBottom: 32,
+                      maxWidth: 400,
+                      margin: '0 auto 32px',
+                    }}
+                  >
+                    See how your paycheck flows through bills and goals like a waterfall. Run a
+                    calculation first!
                   </div>
-                  
+
                   {/* Preview mockup */}
                   <div style={{ maxWidth: 500, margin: '0 auto', opacity: 0.6 }}>
-                    <div style={{ 
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      borderRadius: 16,
-                      padding: '16px 24px',
-                      marginBottom: 12,
-                      border: '2px dashed rgba(102, 126, 234, 0.4)'
-                    }}>
-                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', marginBottom: 4 }}>💰 Your Paycheck</div>
+                    <div
+                      style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        borderRadius: 16,
+                        padding: '16px 24px',
+                        marginBottom: 12,
+                        border: '2px dashed rgba(102, 126, 234, 0.4)',
+                      }}
+                    >
+                      <div
+                        style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', marginBottom: 4 }}
+                      >
+                        💰 Your Paycheck
+                      </div>
                       <div style={{ fontSize: 24, fontWeight: 800, color: '#fff' }}>$X,XXX.XX</div>
                     </div>
-                    
+
                     <div style={{ fontSize: 20, margin: '8px 0' }}>💧</div>
-                    
-                    <div style={{ 
-                      background: colors.surfaceBg,
-                      borderRadius: 12,
-                      padding: '12px 16px',
-                      marginBottom: 8,
-                      border: `2px dashed ${colors.border}`
-                    }}>
+
+                    <div
+                      style={{
+                        background: colors.surfaceBg,
+                        borderRadius: 12,
+                        padding: '12px 16px',
+                        marginBottom: 8,
+                        border: `2px dashed ${colors.border}`,
+                      }}
+                    >
                       <div style={{ fontSize: 12, color: colors.textMuted }}>📋 Bills</div>
                     </div>
-                    
+
                     <div style={{ fontSize: 20, margin: '8px 0' }}>💧</div>
-                    
-                    <div style={{ 
-                      background: colors.surfaceBg,
-                      borderRadius: 12,
-                      padding: '12px 16px',
-                      marginBottom: 8,
-                      border: `2px dashed ${colors.border}`
-                    }}>
+
+                    <div
+                      style={{
+                        background: colors.surfaceBg,
+                        borderRadius: 12,
+                        padding: '12px 16px',
+                        marginBottom: 8,
+                        border: `2px dashed ${colors.border}`,
+                      }}
+                    >
                       <div style={{ fontSize: 12, color: colors.textMuted }}>🎯 Goals</div>
                     </div>
-                    
+
                     <div style={{ fontSize: 20, margin: '8px 0' }}>💧</div>
-                    
-                    <div style={{ 
-                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                      borderRadius: 16,
-                      padding: '16px 24px',
-                      border: '2px dashed rgba(16, 185, 129, 0.4)'
-                    }}>
-                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', marginBottom: 4 }}>💚 Guilt-Free</div>
+
+                    <div
+                      style={{
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        borderRadius: 16,
+                        padding: '16px 24px',
+                        border: '2px dashed rgba(16, 185, 129, 0.4)',
+                      }}
+                    >
+                      <div
+                        style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', marginBottom: 4 }}
+                      >
+                        💚 Guilt-Free
+                      </div>
                       <div style={{ fontSize: 24, fontWeight: 800, color: '#fff' }}>$XXX.XX</div>
                     </div>
                   </div>
-                  
+
                   <button
                     onClick={() => setActiveView('spend')}
                     style={{
@@ -463,7 +531,13 @@ export default function App() {
                 </div>
               )
             ) : (
-              <Dashboard config={config} onResult={setLastAllocation} theme={theme} initialResult={lastAllocation} onRangeUpdate={handleRangeUpdate} />
+              <Dashboard
+                config={config}
+                onResult={setLastAllocation}
+                theme={theme}
+                initialResult={lastAllocation}
+                onRangeUpdate={handleRangeUpdate}
+              />
             )}
           </div>
           <aside aria-label="Sidebar">
@@ -526,7 +600,9 @@ export default function App() {
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = `payflow_config_${new Date().toISOString().split('T')[0]}.json`;
+                        a.download = `payflow_config_${
+                          new Date().toISOString().split('T')[0]
+                        }.json`;
                         a.click();
                         URL.revokeObjectURL(url);
                         trackEvent('configExports');
@@ -555,9 +631,7 @@ export default function App() {
                       Export Config
                     </button>
 
-                    <label
-                      style={{ display: 'block', cursor: 'pointer' }}
-                    >
+                    <label style={{ display: 'block', cursor: 'pointer' }}>
                       <input
                         type="file"
                         accept="application/json"
@@ -800,10 +874,7 @@ export default function App() {
                 trackAction('import_config');
               } else {
                 const errorMsg = getErrorMessage(importResult.error || 'IMPORT_FAILED');
-                showToast(
-                  `${errorMsg.icon} ${errorMsg.message}`,
-                  'error'
-                );
+                showToast(`${errorMsg.icon} ${errorMsg.message}`, 'error');
               }
             }
             setConfirmModal({ isOpen: false, action: null });
@@ -882,9 +953,7 @@ export default function App() {
               View Source
             </a>
           </p>
-          <p style={{ fontSize: 12, opacity: 0.7 }}>
-            Because we all deserve peace
-          </p>
+          <p style={{ fontSize: 12, opacity: 0.7 }}>Because we all deserve peace</p>
         </footer>
       </div>
     </div>

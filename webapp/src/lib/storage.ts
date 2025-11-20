@@ -44,9 +44,7 @@ const parseConfig = (raw: unknown): { config: UserConfig; migrated?: boolean } =
       version: CONFIG_VERSION,
     };
     const wasMigrated = parsed.data.version !== CONFIG_VERSION;
-    return wasMigrated 
-      ? { config: normalized, migrated: true }
-      : { config: normalized };
+    return wasMigrated ? { config: normalized, migrated: true } : { config: normalized };
   }
 
   const legacy = legacyConfigSchemaV1.safeParse(raw);
@@ -190,27 +188,27 @@ export function restoreConfigFromBackup(): boolean {
   try {
     const backupRaw = localStorage.getItem(BACKUP_KEY);
     const timestampRaw = localStorage.getItem(BACKUP_TIMESTAMP_KEY);
-    
+
     if (!backupRaw || !timestampRaw) return false;
-    
+
     const timestamp = parseInt(timestampRaw, 10);
     const now = Date.now();
     const twentyFourHours = 24 * 60 * 60 * 1000;
-    
+
     // Check if backup is expired
     if (now - timestamp > twentyFourHours) {
       localStorage.removeItem(BACKUP_KEY);
       localStorage.removeItem(BACKUP_TIMESTAMP_KEY);
       return false;
     }
-    
+
     const backup = JSON.parse(backupRaw) as UserConfig;
     saveConfig(backup);
-    
+
     // Clear backup after successful restore
     localStorage.removeItem(BACKUP_KEY);
     localStorage.removeItem(BACKUP_TIMESTAMP_KEY);
-    
+
     return true;
   } catch (err) {
     console.warn('restoreConfigFromBackup: failed to restore', err);
@@ -225,19 +223,19 @@ export function hasValidBackup(): { exists: boolean; timestamp?: number } {
   try {
     const backupRaw = localStorage.getItem(BACKUP_KEY);
     const timestampRaw = localStorage.getItem(BACKUP_TIMESTAMP_KEY);
-    
+
     if (!backupRaw || !timestampRaw) return { exists: false };
-    
+
     const timestamp = parseInt(timestampRaw, 10);
     const now = Date.now();
     const twentyFourHours = 24 * 60 * 60 * 1000;
-    
+
     if (now - timestamp > twentyFourHours) {
       localStorage.removeItem(BACKUP_KEY);
       localStorage.removeItem(BACKUP_TIMESTAMP_KEY);
       return { exists: false };
     }
-    
+
     return { exists: true, timestamp };
   } catch (err) {
     return { exists: false };
