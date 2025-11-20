@@ -3,27 +3,25 @@ import { allocatePaycheck } from '../lib/allocations';
 import { trackAction } from '../lib/observability';
 import { trackEvent } from '../lib/analytics';
 import { getThemeColors, type Theme } from '../lib/theme';
+import { formatCurrency } from '../lib/formatters';
 import type { AllocationResult } from '../lib/allocations';
 import type { UserConfig } from '../lib/types';
-
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 2,
-  }).format(value);
 
 export default function Dashboard({
   config,
   onResult,
   theme,
+  initialResult,
+  onRangeUpdate,
 }: {
   config: UserConfig;
   onResult?: (result: AllocationResult) => void;
   theme: Theme;
+  initialResult?: AllocationResult | null;
+  onRangeUpdate?: (min: number, max: number) => void;
 }) {
   const colors = getThemeColors(theme);
-  const [lastResult, setLastResult] = useState<AllocationResult | null>(null);
+  const [lastResult, setLastResult] = useState<AllocationResult | null>(initialResult ?? null);
   const [amountInput, setAmountInput] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
@@ -41,6 +39,13 @@ export default function Dashboard({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Sync with external result changes (e.g., when switching back to this tab)
+  useEffect(() => {
+    if (initialResult) {
+      setLastResult(initialResult);
+    }
+  }, [initialResult]);
+
   const run = () => {
     const parsed = Number(amountInput.replace(/[^0-9.]/g, ''));
     if (!parsed || parsed <= 0) {
@@ -51,6 +56,14 @@ export default function Dashboard({
     setError(null);
     setIsCalculating(true);
 
+    // Auto-adjust range if needed
+    const currentRange = settings.paycheckRange;
+    if (onRangeUpdate && (parsed < currentRange.min || parsed > currentRange.max)) {
+      const newMin = Math.min(parsed, currentRange.min);
+      const newMax = Math.max(parsed, currentRange.max);
+      onRangeUpdate(newMin, newMax);
+    }
+
     // Use setTimeout to allow UI to update with loading state
     setTimeout(() => {
       try {
@@ -59,6 +72,7 @@ export default function Dashboard({
           payFrequency: settings?.payFrequency,
           paycheckRange: settings?.paycheckRange,
           bonuses: config.bonuses,
+          nextPaycheckDate: settings?.nextPaycheckDate,
           upcomingDays:
             settings?.payFrequency === 'weekly'
               ? 7
@@ -126,6 +140,7 @@ export default function Dashboard({
                 fontSize: 18,
                 fontWeight: 600,
                 background: '#fff',
+                color: '#1f2937',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                 outline: 'none',
               }}
@@ -140,36 +155,44 @@ export default function Dashboard({
               onClick={run}
               disabled={isCalculating}
               style={{
-                padding: isMobile ? '14px 20px' : '14px 28px',
-                borderRadius: 12,
+                padding: isMobile ? '16px 24px' : '18px 36px',
+                borderRadius: 14,
                 border: 'none',
-                background: isCalculating ? colors.border : colors.primaryGradient,
+                background: isCalculating 
+                  ? colors.border 
+                  : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                 color: '#fff',
-                fontWeight: 700,
-                fontSize: isMobile ? 15 : 16,
-                boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4)',
+                fontWeight: 800,
+                fontSize: isMobile ? 16 : 18,
+                boxShadow: isCalculating 
+                  ? '0 4px 12px rgba(0,0,0,0.1)' 
+                  : '0 8px 28px rgba(16, 185, 129, 0.5)',
                 cursor: isCalculating ? 'wait' : 'pointer',
-                transition: 'all 0.2s ease',
+                transition: 'all 0.3s ease',
                 whiteSpace: 'nowrap',
-                minHeight: '44px',
-                minWidth: isMobile ? '100%' : '120px',
+                minHeight: '52px',
+                minWidth: isMobile ? '100%' : '180px',
                 flex: isMobile ? '1 0 100%' : 'none',
                 opacity: isCalculating ? 0.7 : 1,
+                textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                letterSpacing: '0.5px',
+                position: 'relative',
+                overflow: 'hidden',
               }}
               onMouseEnter={(e) => {
                 if (!isCalculating) {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 8px 28px rgba(102, 126, 234, 0.5)';
+                  e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
+                  e.currentTarget.style.boxShadow = '0 12px 36px rgba(16, 185, 129, 0.6)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isCalculating) {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.4)';
+                  e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                  e.currentTarget.style.boxShadow = '0 8px 28px rgba(16, 185, 129, 0.5)';
                 }
               }}
             >
-              {isCalculating ? '⏳ Calculating...' : '🎉 I Got Paid!'}
+              {isCalculating ? '⏳ Calculating...' : '🎉 I Got Paid!! 💰'}
             </button>
           </div>
         </label>
@@ -209,11 +232,11 @@ export default function Dashboard({
         <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div
             style={{
-              background: colors.warningGradient,
+              background: colors.successGradient,
               borderRadius: 20,
               padding: isMobile ? 20 : 28,
-              boxShadow: '0 12px 32px rgba(168, 237, 234, 0.4)',
-              border: '2px solid rgba(255,255,255,0.8)',
+              boxShadow: '0 12px 32px rgba(16, 185, 129, 0.4)',
+              border: '2px solid rgba(255,255,255,0.2)',
               transition: 'background 0.3s ease',
             }}
           >
@@ -221,9 +244,10 @@ export default function Dashboard({
               style={{
                 fontSize: 14,
                 fontWeight: 600,
-                color: theme === 'dark' ? '#f1f5f9' : '#1f2937',
+                color: '#ffffff',
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px',
+                opacity: 0.95,
               }}
             >
               Your Guilt-Free Spending 💚
@@ -232,56 +256,61 @@ export default function Dashboard({
               style={{
                 fontSize: 48,
                 fontWeight: 800,
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                color: '#ffffff',
                 marginTop: 8,
+                textShadow: '0 2px 8px rgba(0,0,0,0.15)',
               }}
             >
               {formatCurrency(lastResult.guilt_free)}
             </div>
-            <div
-              style={{
-                display: 'flex',
-                gap: 16,
-                marginTop: 16,
-                fontSize: 13,
-                color: theme === 'dark' ? '#f1f5f9' : '#374151',
-                flexWrap: 'wrap',
-              }}
-            >
-              <span
-                style={{
-                  background: 'rgba(255,255,255,0.7)',
-                  padding: '6px 12px',
-                  borderRadius: 8,
-                  color: '#1f2937',
-                }}
-              >
-                💰 Paycheck: {formatCurrency(lastResult.meta.paycheck)}
-              </span>
-              <span
-                style={{
-                  background: 'rgba(255,255,255,0.7)',
-                  padding: '6px 12px',
-                  borderRadius: 8,
-                  color: '#1f2937',
-                }}
-              >
-                ✅ Effective: {formatCurrency(lastResult.meta.effective_paycheck)}
-              </span>
-              <span
-                style={{
-                  background: 'rgba(255,255,255,0.7)',
-                  padding: '6px 12px',
-                  borderRadius: 8,
-                  color: '#1f2937',
-                }}
-              >
-                🛡️ Buffer: {lastResult.meta.variance_pct}%
-              </span>
-            </div>
           </div>
+
+          {/* Celebration Banner */}
+          {(() => {
+            const fullyFundedCount = lastResult.bills.filter(b => b.remaining === 0).length;
+            const totalBills = lastResult.bills.length;
+            
+            if (totalBills > 0 && fullyFundedCount === totalBills) {
+              return (
+                <div
+                  style={{
+                    background: colors.successGradient,
+                    padding: isMobile ? 16 : 20,
+                    borderRadius: 16,
+                    textAlign: 'center',
+                    marginBottom: 16,
+                    boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
+                  }}
+                >
+                  <div style={{ fontSize: isMobile ? 20 : 24, marginBottom: 8 }}>🎉✨🎉</div>
+                  <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: '#fff' }}>
+                    All {totalBills} {totalBills === 1 ? 'bill' : 'bills'} fully funded!
+                  </div>
+                  <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.9)', marginTop: 4 }}>
+                    You&rsquo;re crushing it! 💪
+                  </div>
+                </div>
+              );
+            } else if (totalBills > 0 && fullyFundedCount > 0) {
+              return (
+                <div
+                  style={{
+                    textAlign: 'center',
+                    color: colors.success,
+                    fontSize: 14,
+                    fontWeight: 600,
+                    marginBottom: 12,
+                    padding: 12,
+                    background: colors.successBg,
+                    borderRadius: 12,
+                  }}
+                >
+                  ✨ {fullyFundedCount} of {totalBills} bills ready to go!
+                </div>
+              );
+            }
+            return null;
+          })()}
 
           <section
             style={{
@@ -335,8 +364,8 @@ export default function Dashboard({
                         {bill.isUrgent && bill.daysUntilDue !== undefined && (
                           <span
                             style={{
-                              background: colors.errorBg,
-                              color: colors.error,
+                              background: '#fef3c7',
+                              color: '#92400e',
                               padding: '2px 8px',
                               borderRadius: 6,
                               fontSize: 11,
@@ -344,7 +373,7 @@ export default function Dashboard({
                               whiteSpace: 'nowrap',
                             }}
                           >
-                            ⚠️ {bill.daysUntilDue}d
+                            📌 Priority ({bill.daysUntilDue}d)
                           </span>
                         )}
                         {!bill.isUrgent && bill.daysUntilDue !== undefined && (
@@ -383,16 +412,16 @@ export default function Dashboard({
                       </div>
                       <div>
                         <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 2 }}>
-                          Still need
+                          For next time
                         </div>
                         <div
                           style={{
                             fontSize: 14,
                             fontWeight: 600,
-                            color: bill.remaining > 0 ? colors.warning : colors.textMuted,
+                            color: bill.remaining > 0 ? colors.textSecondary : colors.success,
                           }}
                         >
-                          {formatCurrency(bill.remaining)}
+                          {bill.remaining > 0 ? formatCurrency(bill.remaining) : '✓ Complete'}
                         </div>
                       </div>
                     </div>
@@ -413,7 +442,7 @@ export default function Dashboard({
                       Allocated
                     </th>
                     <th style={{ padding: '8px 4px', color: colors.textSecondary, fontSize: 13 }}>
-                      Still need
+                      For next time
                     </th>
                   </tr>
                 </thead>
@@ -437,8 +466,8 @@ export default function Dashboard({
                           {bill.isUrgent && bill.daysUntilDue !== undefined && (
                             <span
                               style={{
-                                background: colors.errorBg,
-                                color: colors.error,
+                                background: '#fef3c7',
+                                color: '#92400e',
                                 padding: '2px 6px',
                                 borderRadius: 6,
                                 fontSize: 10,
@@ -446,7 +475,7 @@ export default function Dashboard({
                                 whiteSpace: 'nowrap',
                               }}
                             >
-                              ⚠️ {bill.daysUntilDue}d
+                              📌 Priority ({bill.daysUntilDue}d)
                             </span>
                           )}
                           {!bill.isUrgent && bill.daysUntilDue !== undefined && (
@@ -482,11 +511,11 @@ export default function Dashboard({
                       <td
                         style={{
                           padding: '12px 4px',
-                          color: bill.remaining > 0 ? colors.warning : colors.textMuted,
+                          color: bill.remaining > 0 ? colors.textSecondary : colors.success,
                           fontSize: 14,
                         }}
                       >
-                        {formatCurrency(bill.remaining)}
+                        {bill.remaining > 0 ? formatCurrency(bill.remaining) : '✓'}
                       </td>
                     </tr>
                   ))}
@@ -663,8 +692,8 @@ export default function Dashboard({
             transition: 'background 0.3s ease',
           }}
         >
-          👆 Enter your paycheck amount above and click <strong>&ldquo;I Got Paid!&rdquo;</strong>{' '}
-          to see your guilt-free spending!
+          👆 Enter your paycheck amount above and click the green <strong>&ldquo;I Got Paid!!&rdquo;</strong>{' '}
+          button to see your guilt-free spending!
         </div>
       )}
     </div>
