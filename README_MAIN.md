@@ -4,7 +4,7 @@
 
 Perfect for anyone living paycheck-to-paycheck who wants simple, stress-free money management.
 
-🌐 **[Try it now →](https://payflow-app-new.netlify.app)** | 100% free, no sign-up, runs in your browser
+🌐 **[Try it now →](https://blairmichaelg.github.io/paycheck_waterfall_app/)** | 100% free, no sign-up, runs in your browser
 
 ## 💡 Why PayFlow?
 
@@ -58,11 +58,23 @@ The Python workspace is intentionally empty while the allocator is validated in 
 3. For frontend work, ensure `npm run lint`, `npm run test`, and `npm run build` pass locally before opening a PR.
 4. Prefer keeping business logic isolated in `webapp/src/lib/` so it can be ported to Python later.
 
+## 🚀 Deployment
+
+PayFlow is automatically deployed to GitHub Pages on every push to `main`:
+
+- **Live URL:** https://blairmichaelg.github.io/paycheck_waterfall_app/
+- **CI/CD:** GitHub Actions (runs tests, lints, builds, and deploys)
+- **Deploy time:** ~2 minutes from push to live
+- **Cost:** $0 forever (GitHub Pages free tier)
+
+See `.github/workflows/deploy-gh-pages.yml` for the full deployment pipeline.
+
 ## Roadmap Snapshot
 
 - ✅ Validate allocation math and import/export flows fully client-side
 - ✅ Harden UI/UX, add schema validation, and automate CI
-- ✅ Publish the final web app to Netlify
+- ✅ Publish the final web app (deployed on GitHub Pages)
+- ✅ Complete comprehensive code review improvements (transparency, simplicity, positivity)
 - 🔜 Extract allocation logic into a shared Python package + REST API backend
 
 ## 💬 Feedback & Support
