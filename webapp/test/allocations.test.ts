@@ -75,15 +75,15 @@ describe('allocatePaycheck', () => {
     expect(out.guilt_free).toBe(0)
   })
 
-  it('uses paycheck range to create cushion', () => {
+  it('uses paycheck range minimum as baseline', () => {
     const out = allocatePaycheck(
       1000,
       [{ name: 'Rent', amount: 500, cadence: 'monthly' }],
       [],
       { paycheckRange: { min: 800, max: 1200 }, upcomingDays: 30 }
     )
-    expect(out.meta.effective_paycheck).toBe(800)
-    expect(out.meta.variance_pct).toBeCloseTo(20, 2)
+    expect(out.meta.baseline_from_minimum).toBe(800)
+    expect(out.meta.extra_allocated).toBeGreaterThanOrEqual(0)
   })
 
   it('includes bonus income in calculations', () => {
@@ -107,18 +107,19 @@ describe('allocatePaycheck', () => {
   it('prioritizes bills by due date urgency', () => {
     // Test with bills due on different days - fixed date for consistent testing
     const testDate = new Date(2025, 0, 10) // Jan 10, 2025
+    const nextPaycheck = new Date(2025, 0, 24) // Jan 24, 2025 (14 days later)
     const out = allocatePaycheck(
       600,
       [
-        { name: 'Rent', amount: 1000, cadence: 'monthly', dueDay: 15 }, // Due in 5 days (urgent)
-        { name: 'Electric', amount: 300, cadence: 'monthly', dueDay: 25 }, // Due in 15 days
+        { name: 'Rent', amount: 1000, cadence: 'monthly', dueDay: 15 }, // Due in 5 days (urgent - before next paycheck)
+        { name: 'Electric', amount: 300, cadence: 'monthly', dueDay: 25 }, // Due in 15 days (not urgent - after next paycheck)
         { name: 'Internet', amount: 100, cadence: 'monthly', dueDay: 5 } // Already passed, due in ~26 days
       ],
       [],
-      { upcomingDays: 14, currentDate: testDate }
+      { upcomingDays: 14, currentDate: testDate, nextPaycheckDate: nextPaycheck.toISOString() }
     )
     
-    // Rent should be first (most urgent)
+    // Rent should be first (most urgent - due before next paycheck)
     expect(out.bills[0].name).toBe('Rent')
     expect(out.bills[0].daysUntilDue).toBe(5)
     expect(out.bills[0].isUrgent).toBe(true)
@@ -136,5 +137,23 @@ describe('allocatePaycheck', () => {
     // Rent gets funded first
     expect(out.bills[0].allocated).toBe(600)
     expect(out.bills[1].allocated).toBe(0)
+  })
+
+  it('handles paycheck below minimum without excessive cushion', () => {
+    const bills = [{ name: 'Rent', amount: 500, cadence: 'monthly' as const }]
+    const goals: never[] = []
+    
+    // Range is 800-1200, but paycheck is only 600 (below min)
+    const out = allocatePaycheck(600, bills, goals, {
+      paycheckRange: { min: 800, max: 1200 }
+    })
+    
+    // Should use full paycheck as baseline when below minimum
+    expect(out.meta.baseline_from_minimum).toBe(600)
+    expect(out.meta.extra_allocated).toBe(0)
+    
+    // Should allocate as much as possible from the low paycheck
+    expect(out.bills[0].allocated).toBeGreaterThan(0)
+    expect(out.bills[0].allocated).toBeLessThanOrEqual(600)
   })
 })
