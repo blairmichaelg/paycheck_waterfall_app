@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { allocatePaycheck } from '../lib/allocations';
-import { trackAction } from '../lib/observability';
 import { trackEvent } from '../lib/analytics';
 import { getThemeColors, type Theme } from '../lib/theme';
 import { formatCurrency } from '../lib/formatters';
 import { getErrorMessage } from '../lib/errorMessages';
+import { useIsMobile } from '../lib/hooks';
 import type { AllocationResult } from '../lib/allocations';
 import type { UserConfig } from '../lib/types';
 
@@ -28,19 +28,13 @@ export default function Dashboard({
   const [amountInput, setAmountInput] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
+  const isMobile = useIsMobile();
   const [isCalculating, setIsCalculating] = useState(false);
 
   const settings = config.settings;
   const percentApply = settings?.percentApply ?? 'gross';
   const percentApplyLabel =
     percentApply === 'gross' ? 'Gross paycheck' : 'Paycheck remainder after bills';
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Sync with external result changes (e.g., when switching back to this tab)
   useEffect(() => {
@@ -89,7 +83,6 @@ export default function Dashboard({
         setLastResult(res);
         onResult?.(res);
         trackEvent('paycheckCalculations');
-        trackAction('run_allocation', { paycheck: parsed, guilt_free: res.guilt_free });
       } catch (err) {
         const errorMsg = getErrorMessage('CALCULATION_FAILED');
         setError(`${errorMsg.icon} ${errorMsg.message}`);

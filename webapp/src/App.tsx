@@ -18,13 +18,13 @@ import {
   restoreConfigFromBackup,
   hasValidBackup,
 } from './lib/storage';
-import { trackAction } from './lib/observability';
 import { loadTheme, saveTheme, getThemeColors, type Theme } from './lib/theme';
 import { trackSession, trackEvent } from './lib/analytics';
 import { formatCurrency } from './lib/formatters';
 import { allocatePaycheck, type AllocationResult } from './lib/allocations';
 import type { UserConfig } from './lib/types';
 import { getErrorMessage } from './lib/errorMessages';
+import { useIsMobile } from './lib/hooks';
 
 export default function App() {
   const [config, setConfig] = useState<UserConfig>(() => {
@@ -49,7 +49,7 @@ export default function App() {
   const [lastAllocation, setLastAllocation] = useState<AllocationResult | null>(() =>
     loadAllocation()
   );
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
+  const isMobile = useIsMobile();
   const [theme, setTheme] = useState<Theme>(() => loadTheme());
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -71,7 +71,6 @@ export default function App() {
     setTheme(newTheme);
     saveTheme(newTheme);
     trackEvent('themeToggles');
-    trackAction('toggle_theme', { theme: newTheme });
   };
 
   // Config loaded on mount via useState initializer, no need for redundant useEffect
@@ -84,11 +83,6 @@ export default function App() {
   useEffect(() => {
     // Track session on app load (privacy-friendly, local only)
     trackSession();
-
-    // handle responsive layout
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const showToast = (
@@ -105,11 +99,6 @@ export default function App() {
       setLastSavedAt(Date.now());
       showToast('💾 Configuration saved!', 'success');
       trackEvent('configSaves');
-      trackAction('save_config', {
-        bills: c.bills.length,
-        goals: c.goals.length,
-        bonuses: c.bonuses.length,
-      });
     } else {
       const errorMsg = getErrorMessage(saveResult.error || 'SAVE_FAILED');
       showToast(`${errorMsg.icon} ${errorMsg.message}`, 'error');
@@ -175,7 +164,6 @@ export default function App() {
         'success'
       );
       trackEvent('paycheckCalculations');
-      trackAction('run_allocation', { paycheck: amount, guilt_free: result.guilt_free });
     } catch (err) {
       showToast('Failed to process paycheck', 'error');
       console.error('Allocation error:', err);
@@ -348,7 +336,6 @@ export default function App() {
                   setLastSavedAt(Date.now());
                   setBackupAvailable(false);
                   showToast('✨ Settings restored successfully!', 'success');
-                  trackAction('restore_config_banner');
                 } else {
                   const errorMsg = getErrorMessage('LOAD_FAILED');
                   showToast(`${errorMsg.icon} ${errorMsg.message}`, 'error');
@@ -413,7 +400,6 @@ export default function App() {
                   a.click();
                   URL.revokeObjectURL(url);
                   trackEvent('configExports');
-                  trackAction('export_config');
                 }}
                 onImport={(data) => {
                   setConfirmModal({ isOpen: true, action: 'import', importData: data });
@@ -620,7 +606,6 @@ export default function App() {
                         a.click();
                         URL.revokeObjectURL(url);
                         trackEvent('configExports');
-                        trackAction('export_config');
                       }}
                       aria-label="Export configuration as JSON file"
                       style={{
@@ -693,7 +678,6 @@ export default function App() {
                             setLastSavedAt(Date.now());
                             setBackupAvailable(false);
                             showToast('✨ Configuration restored successfully!', 'success');
-                            trackAction('restore_config');
                           } else {
                             const errorMsg = getErrorMessage('LOAD_FAILED');
                             showToast(`${errorMsg.icon} ${errorMsg.message}`, 'error');
@@ -791,7 +775,6 @@ export default function App() {
                       a.click();
                       URL.revokeObjectURL(url);
                       trackEvent('configExports');
-                      trackAction('export_config');
                     }}
                     aria-label="Export configuration"
                     style={{
@@ -876,7 +859,6 @@ export default function App() {
                 setLastSavedAt(Date.now());
                 setBackupAvailable(true);
                 showToast('✨ Fresh start! Your old settings are backed up for 24 hours.', 'success');
-                trackAction('clear_config');
               } catch (err) {
                 showToast('Failed to clear configuration', 'error');
                 console.error('Clear failed:', err);
@@ -887,7 +869,6 @@ export default function App() {
                 setConfig(importResult.config);
                 setLastSavedAt(Date.now());
                 showToast('✨ Configuration imported successfully!', 'success');
-                trackAction('import_config');
               } else {
                 const errorMsg = getErrorMessage(importResult.error || 'IMPORT_FAILED');
                 showToast(`${errorMsg.icon} ${errorMsg.message}`, 'error');

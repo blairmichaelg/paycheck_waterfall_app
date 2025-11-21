@@ -3,6 +3,7 @@ import { getThemeColors, type Theme } from '../lib/theme';
 import ConfirmModal from './ConfirmModal';
 import { formatRelativeTime } from '../lib/dateUtils';
 import { getErrorMessage } from '../lib/errorMessages';
+import { useIsMobile } from '../lib/hooks';
 import {
   BILL_CADENCES,
   PAY_FREQUENCIES,
@@ -25,7 +26,7 @@ type OnboardingProps = {
 
 export default function Onboarding({ initial, onSave, lastSavedAt, theme, onExport, onImport, onClear }: OnboardingProps) {
   const colors = getThemeColors(theme);
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
+  const isMobile = useIsMobile();
   const [bills, setBills] = useState<Bill[]>(() => initial.bills.map((b) => ({ ...b })));
   const [goals, setGoals] = useState<Goal[]>(() => initial.goals.map((g) => ({ ...g })));
   const [percentApply, setPercentApply] = useState<UserConfig['settings']['percentApply']>(
@@ -53,12 +54,6 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme, onExpo
   });
   const percentApplyFieldId = useId();
   const bonusId = useId();
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const nextBillTemplate: Bill = {
     name: '',

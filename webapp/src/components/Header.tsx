@@ -1,5 +1,6 @@
 import React from 'react';
 import { getThemeColors, type Theme } from '../lib/theme';
+import { BREAKPOINTS } from '../lib/constants';
 import type { AllocationResult } from '../lib/allocations';
 
 type HeaderProps = {
@@ -12,7 +13,7 @@ export default function Header({ lastAllocation, theme, onToggleTheme }: HeaderP
   const guiltFree = lastAllocation ? lastAllocation.guilt_free : 0;
   const hasAllocation = lastAllocation !== null;
   const colors = getThemeColors(theme);
-  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= BREAKPOINTS.mobile;
 
   return (
     <header style={{ marginBottom: 24, textAlign: 'center', position: 'relative' }}>
