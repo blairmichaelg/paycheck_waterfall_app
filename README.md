@@ -16,13 +16,25 @@ PayFlow answers that question in seconds. Enter your paycheck, add your bills an
 
 ## ✨ Features
 
+### Core Experience
 - **🎯 Guilt-free spending focus**: See at a glance how much you can spend without worry
 - **📊 Smart allocation**: Cadence-aware bills with due date priority, paycheck variance cushioning, and bonus income modeling
+- **🔄 One-time bills**: Track non-recurring expenses like car repairs or medical bills (always allocated in full)
+- **💡 Transparent breakdown**: Clear waterfall calculation showing exactly where your money goes
+- **🌊 Visual waterfall**: Beautiful bucket-filling visualization showing bills and goals progress
+
+### UX & Design
 - **🎨 Modern UI**: Vibrant gradients, smooth animations, dark mode, and fully responsive mobile design
-- **💾 Local-first**: All data stays in your browser with localStorage persistence and automatic schema migrations
+- **� Mobile-first**: Optimized layouts and touch targets for small screens (PWA-ready)
+- **🔔 Smart notifications**: Toast alerts for auto-adjusted paycheck ranges and important updates
+- **💪 Positive messaging**: Encouraging language when money is tight—no guilt, just facts
+
+### Tech & Privacy
+- **🌐 PWA Support**: Install on your phone, works offline with service worker caching
+- **� Local-first**: All data stays in your browser with localStorage persistence and automatic schema migrations
 - **📤 Import/Export**: Back up and restore your configuration as JSON with timestamp-based filenames
 - **♿ Accessible**: WCAG 2.1 AA compliant with keyboard navigation, ARIA labels, and screen reader support
-- **🧪 Well-tested**: Comprehensive test suite covering allocation logic, UI components, and data persistence
+- **🧪 Well-tested**: 127+ tests covering allocation logic, UI components, and data persistence
 - **🔒 Privacy-first**: No tracking, no ads, no account required—your financial data never leaves your device
 
 ## 💰 Financial Precision
@@ -81,14 +93,15 @@ See `.github/workflows/deploy-gh-pages.yml` for the full deployment pipeline.
 - ✅ Validate allocation math and import/export flows fully client-side
 - ✅ Harden UI/UX, add schema validation, and automate CI
 - ✅ Publish the final web app (deployed on GitHub Pages)
-- ✅ Complete comprehensive code review improvements (transparency, simplicity, positivity)
-- 🔜 Progressive Web App (PWA) support
+- ✅ Complete comprehensive code review improvements (transparency, simplicity, positivity, mobile-first)
+- ✅ Progressive Web App (PWA) support with offline functionality
+- ✅ One-time bill frequency for non-recurring expenses
+- ✅ Enhanced calculation breakdown with transparent math visualization
 
 ## 💬 Feedback & Support
 
 **Found a bug? Have a feature request?**
-- 📧 Email: [feedback@payflow.app](mailto:feedback@payflow.app)
-- 🐛 GitHub Issues: [Report here](https://github.com/blairmichaelg/paycheck_waterfall_app/issues)
+- � [Open an issue](https://github.com/blairmichaelg/paycheck_waterfall_app/issues) on GitHub
 - 💻 Pull Requests: Always welcome!
 
 **Love PayFlow?** Share it with someone who could use guilt-free spending in their life. That's the best support you can give!
