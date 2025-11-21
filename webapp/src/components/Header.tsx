@@ -82,7 +82,7 @@ export default function Header({ lastAllocation, theme, onToggleTheme }: HeaderP
           </div>
           <div
             style={{
-              fontSize: isMobile ? 48 : 96,
+              fontSize: isMobile ? 48 : 72,
               fontWeight: 900,
               color: '#fff',
               marginTop: isMobile ? 4 : 12,

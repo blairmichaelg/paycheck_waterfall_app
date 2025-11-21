@@ -30,8 +30,6 @@ export default function Dashboard({
   const [showDetails, setShowDetails] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
   const [isCalculating, setIsCalculating] = useState(false);
-  const [spendingInput, setSpendingInput] = useState('');
-  const [spendingCategory, setSpendingCategory] = useState<string>('other');
 
   const settings = config.settings;
   const percentApply = settings?.percentApply ?? 'gross';
@@ -102,61 +100,14 @@ export default function Dashboard({
     }, 50);
   };
 
-  const toggleBillPaid = (billName: string) => {
-    if (!onConfigUpdate) return;
-    
-    const updatedBills = config.bills.map((bill) => {
-      if (bill.name === billName) {
-        const newPaidStatus = !bill.paid;
-        return {
-          ...bill,
-          paid: newPaidStatus,
-          paidDate: newPaidStatus ? new Date().toISOString().split('T')[0] : undefined,
-        };
-      }
-      return bill;
-    });
-
-    onConfigUpdate({
-      ...config,
-      bills: updatedBills,
-    });
-  };
-
-  const addSpending = () => {
-    const amount = parseFloat(spendingInput);
-    if (!amount || amount <= 0 || !lastResult) return;
-    
-    const currentSpent = lastResult.spending_tracked || 0;
-    const newTotal = currentSpent + amount;
-    
-    if (newTotal > lastResult.guilt_free) {
-      setError('⚠️ That would exceed your guilt-free amount!');
-      setTimeout(() => setError(null), 3000);
-      return;
-    }
-    
-    const updated = { ...lastResult, spending_tracked: newTotal };
-    setLastResult(updated);
-    onResult?.(updated);
-    setSpendingInput('');
-  };
-
-  const resetSpending = () => {
-    if (!lastResult) return;
-    const updated = { ...lastResult, spending_tracked: 0 };
-    setLastResult(updated);
-    onResult?.(updated);
-  };
-
   return (
     <div>
       <div
         style={{
-          background: colors.accentGradient,
+          background: colors.surfaceBg,
           padding: isMobile ? 16 : 24,
           borderRadius: 16,
-          boxShadow: '0 8px 24px rgba(253, 203, 110, 0.3)',
+          border: `2px solid ${colors.border}`,
           transition: 'background 0.3s ease',
         }}
       >
@@ -166,7 +117,7 @@ export default function Dashboard({
               display: 'block',
               fontSize: 14,
               fontWeight: 600,
-              color: theme === 'dark' ? '#1f2937' : '#2d3748',
+              color: colors.textPrimary,
               marginBottom: 8,
             }}
           >
@@ -265,122 +216,6 @@ export default function Dashboard({
             </button>
           </div>
         </label>
-        
-        {/* Quick Presets */}
-        {settings.paycheckRange && settings.paycheckRange.max > 0 && (
-          <div style={{ marginTop: 12 }}>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: theme === 'dark' ? '#1f2937' : '#2d3748',
-                marginBottom: 6,
-                opacity: 0.8,
-              }}
-            >
-              Quick calculate:
-            </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button
-                onClick={() => {
-                  setAmountInput(settings.paycheckRange.min.toString());
-                  setTimeout(() => run(), 50);
-                }}
-                disabled={isCalculating}
-                style={{
-                  padding: isMobile ? '10px 16px' : '8px 14px',
-                  borderRadius: 8,
-                  border: '2px solid rgba(255,255,255,0.6)',
-                  background: 'rgba(255,255,255,0.9)',
-                  color: theme === 'dark' ? '#1f2937' : '#2d3748',
-                  fontSize: isMobile ? 12 : 13,
-                  fontWeight: 600,
-                  cursor: isCalculating ? 'wait' : 'pointer',
-                  transition: 'all 0.2s ease',
-                  minHeight: isMobile ? 44 : 36,
-                  flex: isMobile ? '1' : 'none',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isCalculating) {
-                    e.currentTarget.style.background = '#fff';
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.9)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
-              >
-                {isMobile ? `Min $${Math.round(settings.paycheckRange.min)}` : `Min (${formatCurrency(settings.paycheckRange.min)})`}
-              </button>
-              <button
-                onClick={() => {
-                  const avg = (settings.paycheckRange.min + settings.paycheckRange.max) / 2;
-                  setAmountInput(avg.toFixed(2));
-                  setTimeout(() => run(), 50);
-                }}
-                disabled={isCalculating}
-                style={{
-                  padding: isMobile ? '10px 16px' : '8px 14px',
-                  borderRadius: 8,
-                  border: '2px solid rgba(255,255,255,0.6)',
-                  background: 'rgba(255,255,255,0.9)',
-                  color: theme === 'dark' ? '#1f2937' : '#2d3748',
-                  fontSize: isMobile ? 12 : 13,
-                  fontWeight: 600,
-                  cursor: isCalculating ? 'wait' : 'pointer',
-                  transition: 'all 0.2s ease',
-                  minHeight: isMobile ? 44 : 36,
-                  flex: isMobile ? '1' : 'none',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isCalculating) {
-                    e.currentTarget.style.background = '#fff';
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.9)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
-              >
-                {isMobile ? `Avg $${Math.round((settings.paycheckRange.min + settings.paycheckRange.max) / 2)}` : `Avg (${formatCurrency((settings.paycheckRange.min + settings.paycheckRange.max) / 2)})`}
-              </button>
-              <button
-                onClick={() => {
-                  setAmountInput(settings.paycheckRange.max.toString());
-                  setTimeout(() => run(), 50);
-                }}
-                disabled={isCalculating}
-                style={{
-                  padding: isMobile ? '10px 16px' : '8px 14px',
-                  borderRadius: 8,
-                  border: '2px solid rgba(255,255,255,0.6)',
-                  background: 'rgba(255,255,255,0.9)',
-                  color: theme === 'dark' ? '#1f2937' : '#2d3748',
-                  fontSize: isMobile ? 12 : 13,
-                  fontWeight: 600,
-                  cursor: isCalculating ? 'wait' : 'pointer',
-                  transition: 'all 0.2s ease',
-                  minHeight: isMobile ? 44 : 36,
-                  flex: isMobile ? '1' : 'none',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isCalculating) {
-                    e.currentTarget.style.background = '#fff';
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.9)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
-              >
-                {isMobile ? `Max $${Math.round(settings.paycheckRange.max)}` : `Max (${formatCurrency(settings.paycheckRange.max)})`}
-              </button>
-            </div>
-          </div>
-        )}
       </div>
       {error ? (
         <div
@@ -435,9 +270,7 @@ export default function Dashboard({
                 opacity: 0.95,
               }}
             >
-              {lastResult.spending_tracked && lastResult.spending_tracked > 0
-                ? 'Guilt-Free Remaining 💚'
-                : 'Your Guilt-Free Spending 💚'}
+              Your Guilt-Free Spending 💚
             </div>
             <div
               style={{
@@ -448,62 +281,10 @@ export default function Dashboard({
                 textShadow: '0 2px 8px rgba(0,0,0,0.15)',
               }}
             >
-              {lastResult.spending_tracked && lastResult.spending_tracked > 0
-                ? formatCurrency(lastResult.guilt_free - lastResult.spending_tracked)
-                : formatCurrency(lastResult.guilt_free)}
+              {formatCurrency(lastResult.guilt_free)}
             </div>
-            {lastResult.spending_tracked && lastResult.spending_tracked > 0 && (
-              <div
-                style={{
-                  fontSize: 14,
-                  color: 'rgba(255,255,255,0.85)',
-                  marginTop: 8,
-                }}
-              >
-                Spent: {formatCurrency(lastResult.spending_tracked)} of{' '}
-                {formatCurrency(lastResult.guilt_free)}
-              </div>
-            )}
             
-            {/* Light/Heavy Indicator */}
-            {settings.paycheckRange && settings.paycheckRange.max > 0 && (() => {
-              const avg = (settings.paycheckRange.min + settings.paycheckRange.max) / 2;
-              const paycheck = lastResult.meta.paycheck;
-              const variance = ((paycheck - avg) / avg) * 100;
-              
-              // Only show if variance is significant (>5%)
-              if (Math.abs(variance) > 5) {
-                const isLight = paycheck < avg;
-                return (
-                  <div
-                    style={{
-                      marginTop: 12,
-                      padding: '8px 12px',
-                      borderRadius: 8,
-                      background: isLight ? 'rgba(251, 191, 36, 0.2)' : 'rgba(16, 185, 129, 0.2)',
-                      border: isLight
-                        ? '1px solid rgba(251, 191, 36, 0.4)'
-                        : '1px solid rgba(16, 185, 129, 0.4)',
-                      fontSize: 13,
-                      color: 'rgba(255,255,255,0.95)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                    }}
-                  >
-                    <span>{isLight ? '📉' : '📈'}</span>
-                    <span>
-                      {isLight ? 'Light paycheck' : 'Heavy paycheck'} (
-                      {variance > 0 ? '+' : ''}
-                      {variance.toFixed(0)}% vs avg)
-                    </span>
-                  </div>
-                );
-              }
-              return null;
-            })()}
-            
-            {/* Simple breakdown */}
+            {/* Simple breakdown - Always visible for transparency */}
             <div
               style={{
                 marginTop: 16,
@@ -514,6 +295,9 @@ export default function Dashboard({
                 lineHeight: 1.6,
               }}
             >
+              <div style={{ fontSize: 11, opacity: 0.85, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                💡 How we calculated this:
+              </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                 <span>Paycheck:</span>
                 <strong>{formatCurrency(lastResult.meta.paycheck)}</strong>
@@ -532,6 +316,17 @@ export default function Dashboard({
                   <strong>{formatCurrency(lastResult.meta.supplemental_income)}</strong>
                 </div>
               )}
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                marginTop: 10, 
+                paddingTop: 10,
+                borderTop: '1px solid rgba(255,255,255,0.2)',
+                fontWeight: 700,
+              }}>
+                <span>= Guilt-Free:</span>
+                <strong>{formatCurrency(lastResult.guilt_free)}</strong>
+              </div>
             </div>
           </div>
 
@@ -544,19 +339,19 @@ export default function Dashboard({
               return (
                 <div
                   style={{
-                    background: colors.successGradient,
+                    background: colors.successBg,
                     padding: isMobile ? 16 : 20,
                     borderRadius: 16,
                     textAlign: 'center',
                     marginBottom: 16,
-                    boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
+                    border: `2px solid ${colors.success}`,
                   }}
                 >
                   <div style={{ fontSize: isMobile ? 20 : 24, marginBottom: 8 }}>🎉✨🎉</div>
-                  <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: '#fff' }}>
+                  <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: colors.success }}>
                     All {totalBills} {totalBills === 1 ? 'bill' : 'bills'} fully funded!
                   </div>
-                  <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.9)', marginTop: 4 }}>
+                  <div style={{ fontSize: 14, color: colors.textPrimary, marginTop: 4 }}>
                     You&rsquo;re crushing it! 💪
                   </div>
                 </div>
@@ -582,220 +377,6 @@ export default function Dashboard({
             return null;
           })()}
 
-          {/* Bills Paid Summary */}
-          {(() => {
-            const paidCount = config.bills.filter((b) => b.paid).length;
-            const totalBills = config.bills.length;
-
-            if (totalBills > 0 && paidCount > 0) {
-              return (
-                <div
-                  style={{
-                    background: colors.surfaceBg,
-                    padding: isMobile ? 12 : 16,
-                    borderRadius: 12,
-                    marginBottom: 16,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    border: `1px solid ${colors.border}`,
-                  }}
-                >
-                  <span style={{ fontSize: 24 }}>✅</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ color: colors.textPrimary, fontWeight: 600, fontSize: 14 }}>
-                      {paidCount} of {totalBills} {totalBills === 1 ? 'bill' : 'bills'} paid
-                    </div>
-                    {paidCount === totalBills && (
-                      <div style={{ color: colors.success, fontSize: 13, marginTop: 2 }}>
-                        All caught up! 🎉
-                      </div>
-                    )}
-                  </div>
-                  {paidCount > 0 && onConfigUpdate && (
-                    <button
-                      onClick={() => {
-                        const updatedBills = config.bills.map((b) => ({ ...b, paid: false, paidDate: undefined }));
-                        onConfigUpdate({ ...config, bills: updatedBills });
-                      }}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: 6,
-                        border: `1px solid ${colors.border}`,
-                        background: colors.surfaceBg,
-                        color: colors.textSecondary,
-                        fontSize: 12,
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = colors.border;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = colors.surfaceBg;
-                      }}
-                    >
-                      Reset All
-                    </button>
-                  )}
-                </div>
-              );
-            }
-            return null;
-          })()}
-
-          {/* Spending Tracker */}
-          <div
-            style={{
-              background: colors.surfaceBg,
-              padding: isMobile ? 14 : 18,
-              borderRadius: 12,
-              marginBottom: 16,
-              border: `1px solid ${colors.border}`,
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 12,
-                flexWrap: 'wrap',
-                gap: 8,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 20 }}>💸</span>
-                <span style={{ color: colors.textPrimary, fontWeight: 600, fontSize: 14 }}>
-                  Track Spending
-                </span>
-              </div>
-              {lastResult.spending_tracked && lastResult.spending_tracked > 0 && (
-                <button
-                  onClick={resetSpending}
-                  style={{
-                    padding: '6px 12px',
-                    borderRadius: 6,
-                    border: 'none',
-                    background: colors.errorBg,
-                    color: colors.error,
-                    fontSize: 12,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.opacity = '0.8';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.opacity = '1';
-                  }}
-                >
-                  Reset
-                </button>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'stretch', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={spendingInput}
-                onChange={(e) => setSpendingInput(e.target.value.replace(/[^0-9.]/g, ''))}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    addSpending();
-                  }
-                }}
-                placeholder="Amount"
-                style={{
-                  flex: isMobile ? '1 1 55%' : '1',
-                  padding: '10px 12px',
-                  borderRadius: 8,
-                  border: `1px solid ${colors.border}`,
-                  fontSize: 14,
-                  fontWeight: 500,
-                  background: colors.cardBg,
-                  color: colors.textPrimary,
-                  outline: 'none',
-                  minWidth: isMobile ? '100px' : 0,
-                  minHeight: 42,
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#667eea';
-                  if (isMobile) {
-                    setTimeout(() => {
-                      e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 300);
-                  }
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = colors.border;
-                }}
-              />
-              <select
-                value={spendingCategory}
-                onChange={(e) => setSpendingCategory(e.target.value)}
-                style={{
-                  flex: isMobile ? '1 1 40%' : '0 0 140px',
-                  padding: '10px 12px',
-                  borderRadius: 8,
-                  border: `1px solid ${colors.border}`,
-                  fontSize: 14,
-                  fontWeight: 500,
-                  background: colors.cardBg,
-                  color: colors.textPrimary,
-                  outline: 'none',
-                  cursor: 'pointer',
-                  minHeight: 42,
-                }}
-              >
-                <option value="groceries">🛒 Groceries</option>
-                <option value="dining">🍽️ Dining</option>
-                <option value="gas">⛽ Gas</option>
-                <option value="shopping">🛍️ Shopping</option>
-                <option value="entertainment">🎬 Fun</option>
-                <option value="other">📦 Other</option>
-              </select>
-              <button
-                onClick={addSpending}
-                style={{
-                  padding: '10px 18px',
-                  borderRadius: 8,
-                  border: 'none',
-                  background: colors.primaryGradient,
-                  color: '#fff',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  whiteSpace: 'nowrap',
-                  boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
-                  minHeight: 42,
-                  flex: isMobile ? '1 1 100%' : '0 0 auto',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.3)';
-                }}
-              >
-                Add Spending
-              </button>
-            </div>
-            <div
-              style={{
-                fontSize: 12,
-                color: colors.textMuted,
-                marginTop: 8,
-              }}
-            >
-              Optional: Track what you spend to see your guilt-free balance go down
-            </div>
-          </div>
 
           <section
             style={{
@@ -823,9 +404,6 @@ export default function Dashboard({
             ) : isMobile ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {lastResult.bills.map((bill) => {
-                  const configBill = config.bills.find((b) => b.name === bill.name);
-                  const isPaid = configBill?.paid ?? false;
-                  
                   return (
                     <div
                       key={bill.name}
@@ -834,8 +412,6 @@ export default function Dashboard({
                         padding: 12,
                         borderRadius: 12,
                         border: `1px solid ${colors.borderLight}`,
-                        opacity: isPaid ? 0.7 : 1,
-                        transition: 'opacity 0.2s ease',
                       }}
                     >
                       <div
@@ -849,42 +425,15 @@ export default function Dashboard({
                         <div
                           style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}
                         >
-                          <input
-                            type="checkbox"
-                            checked={isPaid}
-                            onChange={() => toggleBillPaid(bill.name)}
-                            style={{
-                              width: 20,
-                              height: 20,
-                              cursor: 'pointer',
-                              accentColor: colors.success,
-                            }}
-                            aria-label={`Mark ${bill.name} as paid`}
-                          />
                           <span
                             style={{
                               color: colors.textPrimary,
                               fontWeight: 600,
                               fontSize: 15,
-                              textDecoration: isPaid ? 'line-through' : 'none',
                             }}
                           >
                             {bill.name || 'Bill'}
                           </span>
-                          {isPaid && (
-                            <span
-                              style={{
-                                background: colors.successBg,
-                                color: colors.success,
-                                padding: '2px 8px',
-                                borderRadius: 6,
-                                fontSize: 11,
-                                fontWeight: 600,
-                              }}
-                            >
-                              ✓ Paid
-                            </span>
-                          )}
                         {bill.isUrgent && bill.daysUntilDue !== undefined && (
                           <span
                             style={{
@@ -919,28 +468,28 @@ export default function Dashboard({
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
                       <div>
-                        <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 2 }}>
+                        <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 2 }}>
                           Need
                         </div>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: colors.textPrimary }}>
+                        <div style={{ fontSize: 15, fontWeight: 600, color: colors.textPrimary }}>
                           {formatCurrency(bill.required)}
                         </div>
                       </div>
                       <div>
-                        <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 2 }}>
+                        <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 2 }}>
                           Funded
                         </div>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: colors.success }}>
+                        <div style={{ fontSize: 15, fontWeight: 600, color: colors.success }}>
                           {formatCurrency(bill.allocated)}
                         </div>
                       </div>
                       <div>
-                        <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 2 }}>
+                        <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 2 }}>
                           For next time
                         </div>
                         <div
                           style={{
-                            fontSize: 14,
+                            fontSize: 15,
                             fontWeight: 600,
                             color: bill.remaining > 0 ? colors.textSecondary : colors.success,
                           }}
@@ -956,8 +505,8 @@ export default function Dashboard({
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ textAlign: 'left', borderBottom: `1px solid ${colors.border}` }}>
-                    <th style={{ padding: '8px 4px', color: colors.textSecondary, fontSize: 13 }}>
+                  <tr style={{ textAlign: 'left', borderBottom: `2px solid ${colors.border}` }}>
+                    <th style={{ textAlign: 'left', padding: '8px 4px', color: colors.textSecondary, fontSize: 13 }}>
                       Name
                     </th>
                     <th style={{ padding: '8px 4px', color: colors.textSecondary, fontSize: 13 }}>
@@ -973,32 +522,13 @@ export default function Dashboard({
                 </thead>
                 <tbody>
                   {lastResult.bills.map((bill) => {
-                    const configBill = config.bills.find((b) => b.name === bill.name);
-                    const isPaid = configBill?.paid ?? false;
-                    
                     return (
                       <tr
                         key={bill.name}
                         style={{
                           borderBottom: `1px solid ${colors.borderLight}`,
-                          opacity: isPaid ? 0.7 : 1,
-                          transition: 'opacity 0.2s ease',
                         }}
                       >
-                        <td style={{ padding: '12px 4px' }}>
-                          <input
-                            type="checkbox"
-                            checked={isPaid}
-                            onChange={() => toggleBillPaid(bill.name)}
-                            style={{
-                              width: 18,
-                              height: 18,
-                              cursor: 'pointer',
-                              accentColor: colors.success,
-                            }}
-                            aria-label={`Mark ${bill.name} as paid`}
-                          />
-                        </td>
                         <td style={{ padding: '12px 4px' }}>
                           <div
                             style={{
@@ -1013,25 +543,10 @@ export default function Dashboard({
                                 color: colors.textPrimary,
                                 fontWeight: 500,
                                 fontSize: 14,
-                                textDecoration: isPaid ? 'line-through' : 'none',
                               }}
                             >
                               {bill.name || 'Bill'}
                             </span>
-                            {isPaid && (
-                              <span
-                                style={{
-                                  background: colors.successBg,
-                                  color: colors.success,
-                                  padding: '2px 6px',
-                                  borderRadius: 6,
-                                  fontSize: 10,
-                                  fontWeight: 600,
-                                }}
-                              >
-                                ✓ Paid
-                              </span>
-                            )}
                           {bill.isUrgent && bill.daysUntilDue !== undefined && (
                             <span
                               style={{

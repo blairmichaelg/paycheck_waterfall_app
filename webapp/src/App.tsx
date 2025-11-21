@@ -213,7 +213,7 @@ export default function App() {
     >
       <div
         style={{
-          maxWidth: 1200,
+          maxWidth: isMobile ? '100%' : 1200,
           margin: '0 auto',
           background: colors.cardBg,
           borderRadius: isMobile ? 16 : 24,
@@ -242,13 +242,7 @@ export default function App() {
           {[
             {
               id: 'spend',
-              label: lastAllocation
-                ? isMobile
-                  ? `💚 $${lastAllocation.guilt_free.toFixed(0)}`
-                  : `💚 $${lastAllocation.guilt_free.toFixed(0)} Guilt-Free`
-                : isMobile
-                ? '💰 Got Paid'
-                : '💰 I Got Paid',
+              label: isMobile ? '💰 Got Paid' : '💰 I Got Paid',
             },
             {
               id: 'breakdown',
@@ -541,6 +535,7 @@ export default function App() {
               />
             )}
           </div>
+          {!isMobile && (
           <aside aria-label="Sidebar">
             {activeView === 'plan' ? (
               // Full sidebar for settings view
@@ -715,27 +710,28 @@ export default function App() {
 
                     <button
                       onClick={() => setConfirmModal({ isOpen: true, action: 'clear' })}
-                      aria-label="Clear all configuration data"
+                      aria-label="Start fresh with new configuration"
                       style={{
                         padding: '10px 16px',
-                        background: colors.errorBg,
-                        border: 'none',
+                        background: colors.surfaceBg,
+                        border: `1px dashed ${colors.border}`,
                         borderRadius: 10,
                         cursor: 'pointer',
                         fontSize: 14,
                         fontWeight: 500,
-                        color: colors.error,
+                        color: colors.textSecondary,
                         transition: 'all 0.2s ease',
                         minHeight: 44,
+                        marginTop: 6,
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.opacity = '0.8';
+                        e.currentTarget.style.background = colors.border;
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.opacity = '1';
+                        e.currentTarget.style.background = colors.surfaceBg;
                       }}
                     >
-                      Clear Config
+                      🔄 Start Fresh
                     </button>
                   </div>
                 </div>
@@ -830,6 +826,7 @@ export default function App() {
               </div>
             )}
           </aside>
+          )}
         </div>
         {toastState.show ? (
           <Toast
@@ -841,13 +838,13 @@ export default function App() {
 
         <ConfirmModal
           isOpen={confirmModal.isOpen}
-          title={confirmModal.action === 'clear' ? 'Clear Configuration?' : 'Import Configuration?'}
+          title={confirmModal.action === 'clear' ? 'Start Fresh?' : 'Import Configuration?'}
           message={
             confirmModal.action === 'clear'
-              ? 'This will delete all your bills, goals, and settings. Make sure you have exported your config if you want to keep it.'
+              ? "Starting fresh will reset all your bills, goals, and settings. Don't worry—we'll create a backup first so you can restore them within 24 hours if needed!"
               : 'This will replace your current configuration. Your existing bills and goals will be lost unless you have exported them.'
           }
-          confirmText={confirmModal.action === 'clear' ? 'Clear All Data' : 'Import'}
+          confirmText={confirmModal.action === 'clear' ? 'Start Fresh' : 'Import'}
           cancelText="Cancel"
           variant="danger"
           theme={theme}
@@ -860,7 +857,7 @@ export default function App() {
                 setLastAllocation(null); // Clear allocation result too
                 setLastSavedAt(Date.now());
                 setBackupAvailable(true);
-                showToast('Configuration cleared. You can restore it within 24 hours.', 'success');
+                showToast('✨ Fresh start! Your old settings are backed up for 24 hours.', 'success');
                 trackAction('clear_config');
               } catch (err) {
                 showToast('Failed to clear configuration', 'error');

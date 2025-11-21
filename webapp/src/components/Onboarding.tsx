@@ -62,6 +62,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
     amount: 0,
     cadence: 'monthly',
     dueDay: 1,
+    paid: false,
   };
 
   const nextBonusTemplate: BonusIncome = {
@@ -271,11 +272,11 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
                     marginBottom: 8,
                   }}
                 >
-                  Add your first bill to get started!
+                  🎉 Great start! Add a bill or two
                 </div>
                 <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6 }}>
-                  Don&apos;t worry—you can always edit or remove it later. Just add the basics and
-                  we&apos;ll help you allocate funds!
+                  Just the basics—we'll show you exactly how much you can spend guilt-free!
+                  You can always edit or remove bills later.
                 </div>
               </div>
             )}
@@ -293,7 +294,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
                       next[i].name = e.target.value;
                       setBills(next);
                     }}
-                    style={{ flex: 1 }}
+                    style={{ flex: 1, fontSize: 16, minHeight: 44 }}
                   />
                   <input
                     type="number"
@@ -305,7 +306,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
                       next[i].amount = e.target.value === '' ? 0 : parseFloat(e.target.value);
                       setBills(next);
                     }}
-                    style={{ width: 120 }}
+                    style={{ width: 120, fontSize: 16, minHeight: 44 }}
                   />
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -320,6 +321,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
                         next[i].cadence = e.target.value as Bill['cadence'];
                         setBills(next);
                       }}
+                      style={{ fontSize: 16, minHeight: 44 }}
                     >
                       {BILL_CADENCES.map((cadence) => (
                         <option key={cadence} value={cadence}>
@@ -345,7 +347,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
                           next[i].dueDay = value;
                           setBills(next);
                         }}
-                        style={{ width: 80 }}
+                        style={{ width: 80, fontSize: 16, minHeight: 44 }}
                       />
                     </label>
                   )}
@@ -456,7 +458,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
                       next[i].name = e.target.value;
                       setGoals(next);
                     }}
-                    style={{ flex: 1, minWidth: 150 }}
+                    style={{ flex: 1, minWidth: 150, fontSize: 16, minHeight: 44 }}
                   />
                   <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <span style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>
@@ -469,6 +471,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
                         next[i].type = e.target.value as Goal['type'];
                         setGoals(next);
                       }}
+                      style={{ fontSize: 16, minHeight: 44 }}
                     >
                       <option value="percent">percent</option>
                       <option value="fixed">fixed</option>
@@ -488,7 +491,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
                         next[i].value = e.target.value === '' ? 0 : parseFloat(e.target.value);
                         setGoals(next);
                       }}
-                      style={{ width: 100 }}
+                      style={{ width: 100, fontSize: 16, minHeight: 44 }}
                     />
                   </label>
                   <button
@@ -573,6 +576,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
                   onChange={(e) =>
                     setPercentApply(e.target.value as UserConfig['settings']['percentApply'])
                   }
+                  style={{ fontSize: 16, minHeight: 44 }}
                 >
                   <option value="gross">Gross (whole paycheck)</option>
                   <option value="remainder">Remainder after bills</option>
@@ -588,6 +592,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
                   onChange={(e) =>
                     setPayFrequency(e.target.value as UserConfig['settings']['payFrequency'])
                   }
+                  style={{ fontSize: 16, minHeight: 44 }}
                 >
                   {PAY_FREQUENCIES.map((freq) => (
                     <option key={freq} value={freq}>
@@ -616,6 +621,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
                     onChange={(e) =>
                       setPaycheckMin(e.target.value === '' ? 0 : parseFloat(e.target.value))
                     }
+                    style={{ fontSize: 16, minHeight: 44 }}
                   />
                 </label>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -630,6 +636,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
                     onChange={(e) =>
                       setPaycheckMax(e.target.value === '' ? 0 : parseFloat(e.target.value))
                     }
+                    style={{ fontSize: 16, minHeight: 44 }}
                   />
                 </label>
               </div>
