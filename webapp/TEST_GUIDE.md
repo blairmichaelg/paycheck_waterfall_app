@@ -84,14 +84,14 @@ npm run test:e2e -- user-journey
 test('handles bills with negative days until due', () => {
   const pastDate = new Date();
   pastDate.setDate(pastDate.getDate() - 5);
-  
+
   const result = allocatePaycheck(1000, [{
     name: 'Overdue',
     amount: 500,
     cadence: 'monthly',
     nextDueDate: pastDate.toISOString().split('T')[0]
   }], [], { upcomingDays: 14 });
-  
+
   expect(result.bills[0].daysUntilDue).toBeLessThan(0);
   expect(result.bills[0].allocated).toBeGreaterThan(0);
 });
@@ -345,5 +345,5 @@ When writing tests, remember:
 
 ---
 
-**Last Updated:** 2025-01-20  
+**Last Updated:** 2025-01-20
 **Maintained By:** @blairmichaelg

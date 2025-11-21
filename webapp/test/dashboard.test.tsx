@@ -23,12 +23,12 @@ describe('Dashboard', () => {
     const input = screen.getByPlaceholderText('e.g. 850')
     fireEvent.change(input, { target: { value: '2000' } })
     fireEvent.click(screen.getByRole('button', { name: /I Got Paid/ }))
-    
+
     // Wait for async calculation to complete
     await waitFor(() => {
       expect(screen.getByText(/Your Guilt-Free Spending/)).toBeInTheDocument()
     })
-    
+
     expect(screen.getByText(/Bills Funded This Paycheck/)).toBeInTheDocument()
     expect(screen.getByText(/Percent goals use:/)).toBeInTheDocument()
   })

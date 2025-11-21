@@ -42,7 +42,7 @@ npm run test:all
 Expected output:
 ```
 ✓ Unit tests: 46 passed
-✓ A11y tests: 14 passed  
+✓ A11y tests: 14 passed
 ✓ E2E tests: 12+ passed
 ```
 

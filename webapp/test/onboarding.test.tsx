@@ -32,7 +32,7 @@ describe('Onboarding', () => {
     // Expand goals section to add a goal
     const goalsHeader = screen.getByText(/🎯 Goals/)
     fireEvent.click(goalsHeader)
-    
+
     fireEvent.click(screen.getByText('+ Add goal'))
     const goalInputs = screen.getAllByPlaceholderText('name')
     const goalName = goalInputs[1] // Second name input (first is bill, second is goal)

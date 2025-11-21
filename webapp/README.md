@@ -24,4 +24,3 @@ Notes:
 Import / export
 - Use the Export button in the app sidebar to download your configuration as JSON.
 - Use the Import file input to load a previously exported JSON config.
-

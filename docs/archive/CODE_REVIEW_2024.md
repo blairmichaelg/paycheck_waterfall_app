@@ -1,6 +1,6 @@
 # PayFlow Code Review: Transparency, Simplicity, Positivity
-**Date:** November 19, 2024  
-**Reviewer:** AI Assistant  
+**Date:** November 19, 2024
+**Reviewer:** AI Assistant
 **Focus:** In-depth analysis of code quality through three lenses
 
 ---
@@ -154,7 +154,7 @@ webapp/src/
 
 **`allocatePaycheck` (422 lines)**
 - **Current state**: Monolithic but well-organized with phase comments
-- **Complexity drivers**: 
+- **Complexity drivers**:
   - 7 distinct phases in one function
   - Multiple loops over bills/goals
   - Bonus income calculation embedded
@@ -257,8 +257,8 @@ function StatCard({ title, value, gradient, icon }) {
 }
 
 // Simplifies:
-<StatCard 
-  title="Guilt-Free Spending" 
+<StatCard
+  title="Guilt-Free Spending"
   value={formatCurrency(lastResult.guilt_free)}
   gradient={colors.successGradient}
   icon="💚"
@@ -554,8 +554,8 @@ export function getPaycheckStreak(): number {
 ## 6. ARCHITECTURAL DECISIONS (Context for Future)
 
 ### 6.1 Why Local-First?
-**Decision:** All data in localStorage, no backend  
-**Rationale:** Privacy, simplicity, zero cost  
+**Decision:** All data in localStorage, no backend
+**Rationale:** Privacy, simplicity, zero cost
 **Trade-offs:**
 - ✅ Instant performance, no auth needed
 - ✅ Works offline, no server maintenance
@@ -565,8 +565,8 @@ export function getPaycheckStreak(): number {
 **Verdict:** Correct for v1, reconsider at 1000+ users
 
 ### 6.2 Why Inline Styles?
-**Decision:** Style objects in components, no CSS files  
-**Rationale:** Colocation, dynamic theming, no build config  
+**Decision:** Style objects in components, no CSS files
+**Rationale:** Colocation, dynamic theming, no build config
 **Trade-offs:**
 - ✅ Theme switching trivial (just change color object)
 - ✅ No dead CSS, no specificity wars
@@ -576,8 +576,8 @@ export function getPaycheckStreak(): number {
 **Verdict:** Appropriate for two-person team, component library later
 
 ### 6.3 Why No State Library?
-**Decision:** React useState + props, no Redux/Zustand  
-**Rationale:** YAGNI principle, avoid over-engineering  
+**Decision:** React useState + props, no Redux/Zustand
+**Rationale:** YAGNI principle, avoid over-engineering
 **Trade-offs:**
 - ✅ Zero learning curve, obvious data flow
 - ✅ Fast iteration, no boilerplate

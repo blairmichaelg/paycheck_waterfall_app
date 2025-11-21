@@ -5,10 +5,10 @@
 ### 🔴 HIGH Priority Issues
 
 #### 1. **Unused Card Component** (252 lines)
-**File:** `src/components/Card.tsx`  
+**File:** `src/components/Card.tsx`
 **Issue:** Fully implemented Card component with variants, sizes, and exports (Card, StatCard, EmptyStateCard) but **never imported or used** anywhere in the codebase.
 
-**Impact:** Dead code bloat  
+**Impact:** Dead code bloat
 **Recommendation:** **DELETE** - It was created for code review but never actually used. Inline styles are working fine.
 
 ```bash
@@ -19,12 +19,12 @@ webapp/src/components/Card.tsx
 ---
 
 #### 2. **Duplicate Analytics System**
-**Files:** 
+**Files:**
 - `src/lib/analytics.ts` (84 lines) - LOCAL analytics, actually used
 - `src/lib/observability.ts` (34 lines) - NO-OP stubs, never enabled
 - `src/lib/config.ts` (12 lines) - Config for observability (unused)
 
-**Issue:** 
+**Issue:**
 - Both imported in `App.tsx` and `Dashboard.tsx`
 - `trackAction()` from observability is called but does nothing (no-op)
 - `trackEvent()` from analytics is called and works
@@ -47,7 +47,7 @@ webapp/src/lib/config.ts
 ---
 
 #### 3. **Magic Number: 768 (Mobile Breakpoint)**
-**Occurrences:** 7 times across 5 files  
+**Occurrences:** 7 times across 5 files
 **Issue:** Hardcoded `768` instead of using `BREAKPOINTS.mobile` constant
 
 **Files:**
@@ -101,7 +101,7 @@ import { useState, useEffect } from 'react';
 import { BREAKPOINTS } from './constants';
 
 export function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = useState(() => 
+  const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' && window.innerWidth <= BREAKPOINTS.mobile
   );
 
@@ -122,7 +122,7 @@ export function useIsMobile(): boolean {
 
 **Issue:** Production logs will be noisy with warnings on every error
 
-**Recommendation:** 
+**Recommendation:**
 - Keep for development
 - Consider environment-based logging:
 
@@ -144,7 +144,7 @@ export function logWarn(message: string, ...args: unknown[]): void {
 ### 🟢 LOW Priority / Code Quality
 
 #### 6. **Unused Constants Export**
-**File:** `src/lib/constants.ts`  
+**File:** `src/lib/constants.ts`
 **Issue:** Comprehensive design system (SPACING, FONT_SIZE, BOX_SHADOW, etc.) defined but **barely used**
 
 **Actually used:**
@@ -155,7 +155,7 @@ export function logWarn(message: string, ...args: unknown[]): void {
 - `BOX_SHADOW` - YES (in Card.tsx only, which is unused)
 - `TRANSITION` - YES (in Card.tsx only, which is unused)
 
-**Recommendation:** 
+**Recommendation:**
 - After deleting Card.tsx, MOST of constants.ts is unused
 - **KEEP** `BREAKPOINTS` and `MIN_TOUCH_TARGET` (should be used)
 - **DELETE** or mark as "future use" the rest
@@ -163,12 +163,12 @@ export function logWarn(message: string, ...args: unknown[]): void {
 ---
 
 #### 7. **Commented Console.log in allocations.ts**
-**File:** `src/lib/allocations.ts` (line 224)  
+**File:** `src/lib/allocations.ts` (line 224)
 ```typescript
 * console.log(result.guilt_free) // Amount available for guilt-free spending
 ```
 
-**Issue:** Example code in JSDoc comment (harmless)  
+**Issue:** Example code in JSDoc comment (harmless)
 **Recommendation:** Keep - it's documentation, not actual code
 
 ---
@@ -203,7 +203,7 @@ export function logWarn(message: string, ...args: unknown[]): void {
 ### 1. Delete Dead Code (~5 min)
 ```bash
 rm webapp/src/components/Card.tsx
-rm webapp/src/lib/observability.ts  
+rm webapp/src/lib/observability.ts
 rm webapp/src/lib/config.ts
 ```
 
@@ -252,7 +252,7 @@ Keep:
 - ✅ Proper error messages
 - ✅ Clean component structure
 
-**Overall Assessment:** 
+**Overall Assessment:**
 - Codebase is **very clean**
 - Main issue is **~300 lines of unused code** (Card, observability)
 - Easy wins available in **30-40 minutes** of cleanup

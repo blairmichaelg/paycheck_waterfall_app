@@ -187,7 +187,7 @@ export default function Dashboard({
               onClick={run}
               disabled={isCalculating}
               style={{
-                padding: isMobile ? '14px 16px' : '18px 36px',
+                padding: isMobile ? '12px 16px' : '18px 36px',
                 borderRadius: 14,
                 border: 'none',
                 background: isCalculating
@@ -338,13 +338,16 @@ export default function Dashboard({
                 style={{
                   fontSize: 11,
                   opacity: 0.85,
-                  marginBottom: 10,
+                  marginBottom: 4,
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px',
                   fontWeight: 600,
                 }}
               >
-                💡 How we calculated this
+                🧮 The Math
+              </div>
+              <div style={{ fontSize: 10, opacity: 0.6, marginBottom: 12, fontStyle: 'italic' }}>
+                (Income − Allocated Bills − Goals = Guilt-Free)
               </div>
               <div
                 style={{
@@ -405,6 +408,24 @@ export default function Dashboard({
                 <strong style={{ fontSize: 14, color: 'rgba(255,180,180,1)' }}>
                   −{formatCurrency(lastResult.bills.reduce((sum, b) => sum + b.allocated, 0))}
                 </strong>
+              </div>
+              <div
+                style={{
+                  fontSize: 11,
+                  textAlign: 'right',
+                  marginTop: -4,
+                  marginBottom: 4,
+                  opacity: 0.8,
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const el = document.getElementById('bills-breakdown');
+                  el?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                See details ↓
               </div>
               <div
                 style={{
@@ -489,6 +510,7 @@ export default function Dashboard({
           })()}
 
           <section
+            id="bills-breakdown"
             style={{
               background: colors.cardBg,
               borderRadius: 16,
