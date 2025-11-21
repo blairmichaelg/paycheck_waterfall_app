@@ -403,6 +403,24 @@ export default function App() {
                 onSave={handleSave}
                 lastSavedAt={lastSavedAt}
                 theme={theme}
+                onExport={() => {
+                  const data = exportConfig();
+                  const blob = new Blob([data], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `payflow_config_${new Date().toISOString().split('T')[0]}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  trackEvent('configExports');
+                  trackAction('export_config');
+                }}
+                onImport={(data) => {
+                  setConfirmModal({ isOpen: true, action: 'import', importData: data });
+                }}
+                onClear={() => {
+                  setConfirmModal({ isOpen: true, action: 'clear' });
+                }}
               />
             ) : activeView === 'breakdown' ? (
               lastAllocation ? (

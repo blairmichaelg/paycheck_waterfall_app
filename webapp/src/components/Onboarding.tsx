@@ -18,9 +18,12 @@ type OnboardingProps = {
   onSave: (c: UserConfig) => void;
   lastSavedAt?: number;
   theme: Theme;
+  onExport?: () => void;
+  onImport?: (data: string) => void;
+  onClear?: () => void;
 };
 
-export default function Onboarding({ initial, onSave, lastSavedAt, theme }: OnboardingProps) {
+export default function Onboarding({ initial, onSave, lastSavedAt, theme, onExport, onImport, onClear }: OnboardingProps) {
   const colors = getThemeColors(theme);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
   const [bills, setBills] = useState<Bill[]>(() => initial.bills.map((b) => ({ ...b })));
@@ -838,10 +841,115 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme }: Onbo
           💾 Save Configuration
         </button>
         {lastSavedAt ? (
-          <div style={{ marginTop: 4, fontSize: 12, color: colors.textMuted }}>
+          <div style={{ marginTop: 4, fontSize: 13, color: colors.textMuted }}>
             Last saved {formatRelativeTime(lastSavedAt)}
           </div>
         ) : null}
+      </div>
+
+      {/* Data Management Section */}
+      <div style={{ marginTop: 32, paddingTop: 32, borderTop: `2px solid ${colors.border}` }}>
+        <h4
+          style={{
+            marginTop: 0,
+            fontSize: 16,
+            fontWeight: 700,
+            color: colors.textPrimary,
+            marginBottom: 16,
+          }}
+        >
+          📦 Data Management
+        </h4>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <button
+            onClick={onExport}
+            style={{
+              padding: '12px 20px',
+              background: colors.surfaceBg,
+              border: `1px solid ${colors.border}`,
+              borderRadius: 10,
+              cursor: 'pointer',
+              fontSize: 15,
+              fontWeight: 600,
+              color: colors.textPrimary,
+              transition: 'all 0.2s ease',
+              minHeight: 44,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = colors.border;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = colors.surfaceBg;
+            }}
+          >
+            📤 Export Config
+          </button>
+
+          <label style={{ display: 'block', cursor: 'pointer' }}>
+            <input
+              type="file"
+              accept="application/json"
+              style={{ display: 'none' }}
+              onChange={async (e) => {
+                const f = e.target.files && e.target.files[0];
+                if (!f) return;
+                const text = await f.text();
+                onImport?.(text);
+                e.target.value = '';
+              }}
+            />
+            <div
+              style={{
+                padding: '12px 20px',
+                background: colors.surfaceBg,
+                border: `1px solid ${colors.border}`,
+                borderRadius: 10,
+                fontSize: 15,
+                fontWeight: 600,
+                color: colors.textPrimary,
+                transition: 'all 0.2s ease',
+                minHeight: 44,
+                textAlign: 'center',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = colors.border;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = colors.surfaceBg;
+              }}
+            >
+              📥 Import Config
+            </div>
+          </label>
+
+          <button
+            onClick={onClear}
+            style={{
+              padding: '12px 20px',
+              background: colors.surfaceBg,
+              border: `1px dashed ${colors.border}`,
+              borderRadius: 10,
+              cursor: 'pointer',
+              fontSize: 15,
+              fontWeight: 600,
+              color: colors.textSecondary,
+              transition: 'all 0.2s ease',
+              minHeight: 44,
+              marginTop: 8,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = colors.border;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = colors.surfaceBg;
+            }}
+          >
+            🔄 Start Fresh
+          </button>
+          <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 4, textAlign: 'center' }}>
+            Resets all settings (backup created automatically)
+          </div>
+        </div>
       </div>
 
       <ConfirmModal
