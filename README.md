@@ -43,7 +43,7 @@ PayFlow answers that question in seconds. Enter your paycheck, add your bills an
 - **🔒 Local-first**: All data stays in your browser with localStorage persistence and automatic schema migrations
 - **📤 Import/Export**: Back up and restore your configuration as JSON with timestamp-based filenames
 - **♿ Accessible**: WCAG 2.1 AA compliant with keyboard navigation, ARIA labels, and screen reader support
-- **🧪 Well-tested**: 127+ tests covering allocation logic, UI components, and data persistence
+- **🧪 Well-tested**: 209 tests covering allocation logic, UI components, and data persistence
 - **🔒 Privacy-first**: No tracking, no ads, no account required—your financial data never leaves your device
 
 ## 🚀 Quick Start
