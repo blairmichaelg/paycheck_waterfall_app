@@ -1,7 +1,7 @@
 /**
  * E2E Test: Complete User Journey
  * Tests the happy path from first visit to calculating guilt-free spending.
- * 
+ *
  * Philosophy: Transparency - tests document expected user experience
  */
 
@@ -25,7 +25,7 @@ test.describe('First-Time User Journey', () => {
     // Step 3: Add a bill
     await page.fill('input[placeholder="e.g., Rent"]', 'Rent');
     await page.fill('input[placeholder="e.g., 1000"]', '1200');
-    
+
     // Select monthly cadence
     await page.selectOption('select', 'monthly');
 
@@ -54,18 +54,18 @@ test.describe('First-Time User Journey', () => {
 
     // Step 7: Verify results are shown
     await expect(page.locator('text=Your Guilt-Free Spending')).toBeVisible();
-    
+
     // Should show guilt-free amount
     const guiltFreeText = await page.locator('text=Your Guilt-Free Spending').locator('..').textContent();
     expect(guiltFreeText).toContain('$');
 
     // Should show breakdown
     await expect(page.locator('text=How we calculated this')).toBeVisible();
-    
+
     // Should show bills section
     await expect(page.locator('text=Bills Funded This Paycheck')).toBeVisible();
     await expect(page.locator('text=Rent')).toBeVisible();
-    
+
     // Should show goals section
     await expect(page.locator('text=Goals')).toBeVisible();
     await expect(page.locator('text=Savings')).toBeVisible();
@@ -75,7 +75,7 @@ test.describe('First-Time User Journey', () => {
 test.describe('Waterfall Visualization', () => {
   test('should show waterfall breakdown after calculation', async ({ page }) => {
     await page.goto('/');
-    
+
     // Dismiss welcome modal if present
     const welcomeButton = page.locator('button:has-text("Explore on My Own")');
     if (await welcomeButton.isVisible()) {
@@ -100,7 +100,7 @@ test.describe('Waterfall Visualization', () => {
     await expect(page.locator('text=Source')).toBeVisible();
     await expect(page.locator('text=Bills (Buckets Filling)')).toBeVisible();
     await expect(page.locator('text=The Pool (Guilt-Free)')).toBeVisible();
-    
+
     // Should show visual flow connectors
     await expect(page.locator('text=💧')).toBeVisible();
   });

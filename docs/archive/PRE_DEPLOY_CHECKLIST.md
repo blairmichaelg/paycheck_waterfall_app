@@ -206,7 +206,7 @@ Before deploying, verify the app embodies:
 - No hidden fees or tricks
 - Open source and auditable
 
-✅ **Simplicity** 
+✅ **Simplicity**
 - Three-tab navigation
 - No overwhelming config
 - Clear call-to-actions

@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
-[![Tests](https://img.shields.io/badge/Tests-127_Passing-4CAF50?style=for-the-badge)](webapp/test)
+[![Tests](https://img.shields.io/badge/Tests-209_Test_Cases-4CAF50?style=for-the-badge)](webapp/test)
 
 **Your guilt-free spending companion** – Stop worrying about every purchase. PayFlow tells you exactly how much you can spend without missing rent, bills, or savings goals.
 
@@ -76,7 +76,7 @@ npm test
 ## 🏗️ Architecture
 
 - **`webapp/`** – Vite + React TypeScript single-page app containing the full experience
-- **`docs/`** – Architecture documentation and archives  
+- **`docs/`** – Architecture documentation and archives
 - **`.github/workflows/`** – CI definitions for the webapp pipeline
 
 ## 💰 Financial Precision

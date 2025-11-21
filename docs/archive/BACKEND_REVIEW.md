@@ -1,7 +1,7 @@
 # Backend Review - PayFlow App
 
-**Review Date:** November 20, 2025  
-**Reviewer:** Cascade AI  
+**Review Date:** November 20, 2025
+**Reviewer:** Cascade AI
 **Scope:** Business logic layer (TypeScript "backend"), data persistence, allocation algorithms, and architecture
 
 ---
@@ -155,7 +155,7 @@ function _round2(x: number): number {
 
 **Risk Level:** LOW for typical paychecks under $10,000/month, MODERATE for high earners.
 
-**Recommendation:** 
+**Recommendation:**
 ```typescript
 // Option 1: Use decimal.js for high-precision scenarios
 import Decimal from 'decimal.js';
@@ -190,7 +190,7 @@ billsWithPriority.sort((a, b) => {
 ```typescript
 const convertDueDayToNextDueDate = (bill: BillInput, currentDate: Date): string | undefined => {
   if (bill.cadence !== 'monthly' || !bill.dueDay) return undefined;
-  
+
   const daysInCurrentMonth = new Date(year, month + 1, 0).getDate();
   const effectiveDueDay = Math.min(requestedDueDay, daysInCurrentMonth);
   // ...
@@ -482,14 +482,14 @@ All data in localStorage can be read by malicious browser extensions.
 ```typescript
 /**
  * Allocates a paycheck across bills and goals using waterfall method.
- * 
+ *
  * @param paycheckAmount - Gross paycheck (must be >= 0)
  * @param bills - Array of recurring bills
  * @param goals - Array of savings goals
  * @param options - Allocation configuration
  * @returns Breakdown with guilt-free spending amount
  * @throws {Error} If paycheckAmount is negative
- * 
+ *
  * @example
  * ```ts
  * const result = allocatePaycheck(2000, [/* bills */], [/* goals */]);

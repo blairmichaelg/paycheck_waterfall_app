@@ -53,14 +53,21 @@ export default function Toast({
 
   const style = styles[variant];
 
+  const isMobile = window.innerWidth <= 768;
+
   return (
     <div
       role="alert"
       aria-live="assertive"
       style={{
         position: 'fixed',
-        bottom: 20,
-        right: 20,
+        bottom: isMobile ? 24 : 20,
+        ...(isMobile
+          ? {
+              left: '50%',
+              transform: visible ? 'translateX(-50%)' : 'translateX(-50%) translateY(20px)',
+            }
+          : { right: 20, transform: visible ? 'translateY(0)' : 'translateY(20px)' }),
         background: style.background,
         color: '#fff',
         padding: '16px 24px',
@@ -69,10 +76,9 @@ export default function Toast({
         zIndex: 10000,
         fontWeight: 600,
         fontSize: 15,
-        transform: visible ? 'translateY(0)' : 'translateY(20px)',
         opacity: visible ? 1 : 0,
         transition: 'all 0.3s ease',
-        maxWidth: '90vw',
+        maxWidth: isMobile ? '92vw' : '90vw',
         wordBreak: 'break-word',
       }}
     >

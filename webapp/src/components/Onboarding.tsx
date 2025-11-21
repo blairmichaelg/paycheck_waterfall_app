@@ -270,7 +270,7 @@ export default function Onboarding({
                   marginBottom: 16,
                 }}
               >
-                <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
+                <div style={{ fontSize: 48, marginBottom: 12 }}>🛡️</div>
                 <div
                   style={{
                     fontSize: 16,
@@ -279,11 +279,11 @@ export default function Onboarding({
                     marginBottom: 8,
                   }}
                 >
-                  🎉 Great start! Add a bill or two
+                  Protect your essentials
                 </div>
                 <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6 }}>
-                  Just the basics—we&apos;ll show you exactly how much you can spend guilt-free! You
-                  can always edit or remove bills later.
+                  Add your must-pay bills here. We&apos;ll set aside money for them first so you
+                  never have to worry about missing a due date!
                 </div>
               </div>
             )}

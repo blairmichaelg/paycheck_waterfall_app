@@ -124,6 +124,6 @@ Site updates automatically in ~2 minutes.
 
 ---
 
-**Status:** Ready to deploy ✅  
-**Cost:** $0.00 forever 💰  
+**Status:** Ready to deploy ✅
+**Cost:** $0.00 forever 💰
 **Time to live:** ~2 minutes ⏱️

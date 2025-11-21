@@ -2,7 +2,7 @@
  * Automated accessibility tests using jest-axe.
  * Tests for WCAG 2.1 AA compliance including color contrast,
  * semantic HTML, ARIA attributes, and keyboard navigation.
- * 
+ *
  * Philosophy alignment:
  * - Transparency: Everyone can read and understand the UI
  * - Positivity: Inclusive design welcomes all users
@@ -175,14 +175,14 @@ describe('Accessibility Tests', () => {
           initialResult={mockAllocation}
         />
       );
-      
+
       // Axe will automatically check color contrast ratios
       const results = await axe(container, {
         rules: {
           'color-contrast': { enabled: true },
         },
       });
-      
+
       expect(results).toHaveNoViolations();
     });
 
@@ -194,13 +194,13 @@ describe('Accessibility Tests', () => {
           initialResult={mockAllocation}
         />
       );
-      
+
       const results = await axe(container, {
         rules: {
           'color-contrast': { enabled: true },
         },
       });
-      
+
       expect(results).toHaveNoViolations();
     });
   });
@@ -210,7 +210,7 @@ describe('Accessibility Tests', () => {
       const { container } = render(
         <Dashboard config={mockConfig} theme="light" />
       );
-      
+
       const results = await axe(container, {
         rules: {
           'aria-allowed-attr': { enabled: true },
@@ -220,7 +220,7 @@ describe('Accessibility Tests', () => {
           'label': { enabled: true },
         },
       });
-      
+
       expect(results).toHaveNoViolations();
     });
   });
@@ -234,7 +234,7 @@ describe('Accessibility Tests', () => {
           initialResult={mockAllocation}
         />
       );
-      
+
       const results = await axe(container, {
         rules: {
           'label-title-only': { enabled: true },
@@ -242,7 +242,7 @@ describe('Accessibility Tests', () => {
           'aria-input-field-name': { enabled: true },
         },
       });
-      
+
       expect(results).toHaveNoViolations();
     });
   });

@@ -1,6 +1,6 @@
 # Backend Improvement Action Plan
 
-**Based on:** BACKEND_REVIEW.md (Nov 20, 2025)  
+**Based on:** BACKEND_REVIEW.md (Nov 20, 2025)
 **Target Timeline:** Implement P0 items before next release, P1 within 2 sprints
 
 ---
@@ -98,23 +98,23 @@ describe('date validation', () => {
 ```typescript
 /**
  * Round a number to 2 decimal places for currency display.
- * 
+ *
  * PRECISION NOTES:
  * - Uses standard IEEE 754 floating-point arithmetic
  * - Precision is maintained throughout calculations, rounded only at output
  * - Cumulative errors typically < $0.01 for amounts under $100,000
  * - For high-precision requirements (hedge funds, accounting systems),
  *   consider using a decimal library like decimal.js or big.js
- * 
+ *
  * SUFFICIENT FOR:
  * ✅ Personal budgeting (<$10K/month paychecks)
  * ✅ Small business payroll (<$50K/month)
  * ✅ Standard consumer finance applications
- * 
+ *
  * LIMITATIONS:
  * ⚠️ Not suitable for high-frequency trading or scientific calculations
  * ⚠️ Avoid using for legal/tax calculations requiring exact cent precision
- * 
+ *
  * @param x - The number to round
  * @returns Number rounded to 2 decimal places
  * @example
@@ -157,14 +157,14 @@ describe('allocatePaycheck - edge cases', () => {
     it('handles bills with negative days until due', () => {
       const pastDate = new Date();
       pastDate.setDate(pastDate.getDate() - 5);
-      
+
       const out = allocatePaycheck(
         1000,
         [{ name: 'Overdue', amount: 500, cadence: 'monthly', nextDueDate: pastDate.toISOString().split('T')[0] }],
         [],
         { upcomingDays: 14 }
       );
-      
+
       expect(out.bills[0].daysUntilDue).toBeLessThan(0);
       expect(out.bills[0].allocated).toBeGreaterThan(0);
     });
@@ -179,7 +179,7 @@ describe('allocatePaycheck - edge cases', () => {
         [],
         { currentDate: new Date(2024, 1, 15), upcomingDays: 14 }
       );
-      
+
       expect(out.bills[0].allocated).toBeGreaterThan(0);
     });
 
@@ -190,7 +190,7 @@ describe('allocatePaycheck - edge cases', () => {
         [],
         { currentDate: new Date(2025, 1, 15), upcomingDays: 14 } // Feb 2025
       );
-      
+
       // Should map to Feb 28
       expect(out.bills[0].allocated).toBeGreaterThan(0);
     });
@@ -208,7 +208,7 @@ describe('allocatePaycheck - edge cases', () => {
         [],
         { currentDate: new Date(2025, 1, 10), nextPaycheckDate: '2025-02-20' }
       );
-      
+
       // Large bill should be fully funded first
       expect(out.bills[0].name).toBe('Large Bill');
       expect(out.bills[0].allocated).toBe(800);
@@ -224,7 +224,7 @@ describe('allocatePaycheck - edge cases', () => {
         [{ name: 'Invest', type: 'percent', value: 10 }],
         { upcomingDays: 30 }
       );
-      
+
       expect(out.bills[0].allocated).toBe(5000);
       expect(out.goals[0].allocated).toBe(15000);
       expect(out.guilt_free).toBe(130000);
@@ -237,7 +237,7 @@ describe('allocatePaycheck - edge cases', () => {
         [],
         { upcomingDays: 30 }
       );
-      
+
       expect(out.bills[0].allocated).toBe(0);
       expect(out.guilt_free).toBe(1000);
     });
@@ -249,7 +249,7 @@ describe('allocatePaycheck - edge cases', () => {
         [{ name: 'Paused Goal', type: 'fixed', value: 0 }],
         { upcomingDays: 30 }
       );
-      
+
       expect(out.goals[0].allocated).toBe(0);
       expect(out.guilt_free).toBe(1000);
     });
@@ -269,7 +269,7 @@ describe('allocatePaycheck - edge cases', () => {
           upcomingDays: 14
         }
       );
-      
+
       // Should include prorated portions of both bonuses
       expect(out.meta.supplemental_income).toBeGreaterThan(0);
       expect(out.guilt_free).toBeGreaterThan(1000);
@@ -286,7 +286,7 @@ describe('allocatePaycheck - edge cases', () => {
         [],
         { currentDate: dstDate, nextPaycheckDate: '2024-03-24' }
       );
-      
+
       expect(out.bills[0].daysUntilDue).toBe(5);
     });
 
@@ -299,7 +299,7 @@ describe('allocatePaycheck - edge cases', () => {
         [],
         { currentDate: dstDate, nextPaycheckDate: '2024-11-17' }
       );
-      
+
       expect(out.bills[0].daysUntilDue).toBe(5);
     });
   });
@@ -317,7 +317,7 @@ describe('allocatePaycheck - edge cases', () => {
 /**
  * Normalize a date to UTC midnight.
  * Prevents time zone issues when comparing dates.
- * 
+ *
  * @param date - Date to normalize (Date object or ISO string)
  * @returns New Date object set to midnight UTC
  * @example
@@ -333,7 +333,7 @@ export function normalizeToUTCMidnight(date: Date | string): Date {
 /**
  * Calculate days between two dates in UTC midnight terms.
  * Prevents off-by-one errors due to time zones.
- * 
+ *
  * @param fromDate - Start date
  * @param toDate - End date
  * @returns Number of full days between dates
@@ -411,7 +411,7 @@ billsWithPriority.sort((a, b) => {
 it('prioritizes larger bills when due on same day', () => {
   const testDate = new Date(2025, 0, 10);
   const nextPaycheck = new Date(2025, 0, 24);
-  
+
   const out = allocatePaycheck(
     1000,
     [
@@ -422,7 +422,7 @@ it('prioritizes larger bills when due on same day', () => {
     [],
     { currentDate: testDate, nextPaycheckDate: nextPaycheck.toISOString(), upcomingDays: 14 }
   );
-  
+
   // Should fund in order: Large, Medium, Small
   expect(out.bills[0].name).toBe('Large');
   expect(out.bills[0].allocated).toBe(800);
@@ -478,14 +478,14 @@ export async function saveConfigSafe(cfg: UserConfig): Promise<SaveResult> {
       version: CONFIG_VERSION,
       updatedAt: new Date().toISOString(),
     });
-    
+
     const estimatedSize = estimateStorageSize(normalized);
     const hasSpace = await hasEnoughStorage(estimatedSize);
-    
+
     if (!hasSpace) {
       return { success: false, error: 'STORAGE_QUOTA' };
     }
-    
+
     localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
     return { success: true };
   } catch (err) {
@@ -552,7 +552,7 @@ export function restoreConfigFromBackup(): boolean {
 
     const decompressed = LZString.decompress(backupRaw);
     if (!decompressed) return false;
-    
+
     const backup = JSON.parse(decompressed) as UserConfig;
     saveConfig(backup);
 
@@ -597,11 +597,11 @@ function validateJSONDepth(obj: unknown, maxDepth = 10): boolean {
 export function importConfig(json: string): ImportResult {
   try {
     const raw = JSON.parse(json);
-    
+
     if (!validateJSONDepth(raw)) {
       return { success: false, error: 'INVALID_CONFIG' };
     }
-    
+
     const { config } = parseConfig(raw);
     const saveResult = saveConfig(config);
     if (!saveResult.success) {

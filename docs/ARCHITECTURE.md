@@ -13,8 +13,8 @@ PayFlow does **ONE thing exceptionally well:**
 
 ## Current State (Production)
 
-**Live:** https://blairmichaelg.github.io/paycheck_waterfall_app/  
-**Hosting:** GitHub Pages (auto-deploy on push to main)  
+**Live:** https://blairmichaelg.github.io/paycheck_waterfall_app/
+**Hosting:** GitHub Pages (auto-deploy on push to main)
 **Status:** Stable, 2-person app with top-quality UX
 
 ### Tech Stack
@@ -22,7 +22,7 @@ PayFlow does **ONE thing exceptionally well:**
 Frontend:  React + TypeScript + Vite
 Styling:   Inline styles + theme system (no CSS frameworks)
 Storage:   localStorage with Zod validation (V4 schema)
-Testing:   Vitest + React Testing Library + Playwright (46 tests)
+Testing:   Vitest + React Testing Library + Playwright (209 test cases)
 CI/CD:     GitHub Actions → GitHub Pages (~2min deploys)
 ```
 
@@ -225,7 +225,7 @@ webapp/
 - **No naming** - No BEM, no CSS modules, no conflicts
 
 ### Why Remove Features?
-> "Perfection is achieved not when there is nothing more to add,  
+> "Perfection is achieved not when there is nothing more to add,
 > but when there is nothing left to take away." – Antoine de Saint-Exupéry
 
 We removed ~250 lines of code (spending tracker, bill checkboxes, etc.) because:

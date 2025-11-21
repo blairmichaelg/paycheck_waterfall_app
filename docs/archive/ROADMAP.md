@@ -40,7 +40,7 @@ Consider these alternative names that better convey the positive, guilt-free spe
 1. **Enhanced variance modeling** *(optional enhancement)*
    - Allow users to input historical paycheck data for automatic range calculation
    - Surface "worst case" vs "expected case" allocations side-by-side
-   
+
 2. **Undo/redo for destructive actions**
    - Replace window.confirm dialogs with in-app modals showing what will be deleted
    - Implement undo buffer for clear/import operations (toast with "Undo" action)
@@ -53,7 +53,7 @@ Consider these alternative names that better convey the positive, guilt-free spe
 4. **Mobile-first responsive design**
    - Optimize layouts for mobile screens (currently desktop-focused)
    - Touch-friendly input controls and button sizing
-   
+
 5. **Dark mode support**
    - Add theme toggle and dark color palette
    - Persist theme preference in localStorage

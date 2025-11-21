@@ -118,24 +118,24 @@ describe('allocatePaycheck', () => {
       [],
       { upcomingDays: 14, currentDate: testDate, nextPaycheckDate: nextPaycheck.toISOString() }
     )
-    
+
     // Rent should be first (most urgent - due before next paycheck)
     expect(out.bills[0].name).toBe('Rent')
     expect(out.bills[0].daysUntilDue).toBeGreaterThanOrEqual(4)
     expect(out.bills[0].daysUntilDue).toBeLessThanOrEqual(6)
     expect(out.bills[0].isUrgent).toBe(true)
-    
+
     // Electric should be second
     expect(out.bills[1].name).toBe('Electric')
     expect(out.bills[1].daysUntilDue).toBeGreaterThanOrEqual(14)
     expect(out.bills[1].daysUntilDue).toBeLessThanOrEqual(16)
     expect(out.bills[1].isUrgent).toBe(false)
-    
+
     // Internet should be last (already passed this month)
     expect(out.bills[2].name).toBe('Internet')
     expect(out.bills[2].daysUntilDue).toBeGreaterThan(20)
     expect(out.bills[2].isUrgent).toBe(false)
-    
+
     // Rent gets funded first
     expect(out.bills[0].allocated).toBe(600)
     expect(out.bills[1].allocated).toBe(0)
@@ -144,16 +144,16 @@ describe('allocatePaycheck', () => {
   it('handles paycheck below minimum without excessive cushion', () => {
     const bills = [{ name: 'Rent', amount: 500, cadence: 'monthly' as const }]
     const goals: never[] = []
-    
+
     // Range is 800-1200, but paycheck is only 600 (below min)
     const out = allocatePaycheck(600, bills, goals, {
       paycheckRange: { min: 800, max: 1200 }
     })
-    
+
     // Should use full paycheck as baseline when below minimum
     expect(out.meta.baseline_from_minimum).toBe(600)
     expect(out.meta.extra_allocated).toBe(0)
-    
+
     // Should allocate as much as possible from the low paycheck
     expect(out.bills[0].allocated).toBeGreaterThan(0)
     expect(out.bills[0].allocated).toBeLessThanOrEqual(600)
@@ -162,7 +162,7 @@ describe('allocatePaycheck', () => {
   it('prioritizes larger bills when due on same day (stable sort)', () => {
     const testDate = new Date(2025, 0, 10)
     const nextPaycheck = new Date(2025, 0, 24)
-    
+
     const out = allocatePaycheck(
       1000,
       [
@@ -173,7 +173,7 @@ describe('allocatePaycheck', () => {
       [],
       { currentDate: testDate, nextPaycheckDate: nextPaycheck.toISOString(), upcomingDays: 14 }
     )
-    
+
     // Should fund in order: Large, Medium, Small
     expect(out.bills[0].name).toBe('Large')
     expect(out.bills[0].allocated).toBe(800)
@@ -195,11 +195,11 @@ describe('allocatePaycheck', () => {
       [],
       { payFrequency: 'biweekly', upcomingDays: 14, currentDate: testDate }
     )
-    
+
     // Should require FULL amount for monthly bills due within 30 days
     const zombieBurger = out.bills.find((b) => b.name === 'Zombie Burger')
     const courtFees = out.bills.find((b) => b.name === 'Court Fees')
-    
+
     expect(zombieBurger?.required).toBe(100) // Full amount, not prorated
     expect(courtFees?.required).toBe(136) // Full amount, not prorated
   })
@@ -214,17 +214,17 @@ describe('allocatePaycheck', () => {
       [],
       { upcomingDays: 30 } // Monthly period
     )
-    
+
     // One-time bill should require full amount regardless of paycheck frequency
     const tires = out.bills.find((b) => b.name === 'New Tires')
     expect(tires?.required).toBe(400) // Full amount, never prorated
     expect(tires?.allocated).toBe(400) // Should be fully funded
-    
+
     // Monthly bill should require full amount with 30 day window
     const water = out.bills.find((b) => b.name === 'Water Bill')
     expect(water?.required).toBe(100)
     expect(water?.allocated).toBe(100)
-    
+
     // Should have guilt-free money left
     expect(out.guilt_free).toBe(500)
   })
@@ -240,21 +240,21 @@ describe('allocatePaycheck', () => {
       [],
       { upcomingDays: 30 }
     )
-    
+
     // All bills should require their full amount (one_time and monthly always full)
     const medical = out.bills.find((b) => b.name === 'One-time Medical')
     const rent = out.bills.find((b) => b.name === 'Rent')
     const carRepair = out.bills.find((b) => b.name === 'One-time Car Repair')
-    
+
     expect(medical?.required).toBe(200)
     expect(rent?.required).toBe(500)
     expect(carRepair?.required).toBe(300)
-    
+
     // Should allocate to bills until money runs out
     const totalAllocated = out.bills.reduce((sum, b) => sum + b.allocated, 0)
     expect(totalAllocated).toBe(600) // All money goes to bills
     expect(out.guilt_free).toBe(0)
-    
+
     // At least one bill should be fully funded
     const fullyFundedCount = out.bills.filter((b) => b.allocated === b.required).length
     expect(fullyFundedCount).toBeGreaterThan(0)

@@ -1,7 +1,7 @@
 /**
  * E2E Test: Settings Persistence
  * Tests config export, import, clear, and backup recovery.
- * 
+ *
  * Philosophy: Transparency - users trust their data is safe
  */
 
@@ -11,7 +11,7 @@ import * as path from 'path';
 test.describe('Settings Persistence', () => {
   test('should export and import configuration successfully', async ({ page }) => {
     await page.goto('/');
-    
+
     // Dismiss welcome modal
     const welcomeButton = page.locator('button:has-text("Explore on My Own")');
     if (await welcomeButton.isVisible()) {
@@ -33,13 +33,13 @@ test.describe('Settings Persistence', () => {
     const downloadPromise = page.waitForEvent('download');
     await page.click('button:has-text("Export Config")');
     const download = await downloadPromise;
-    
+
     // Verify download occurred
     expect(download.suggestedFilename()).toMatch(/payflow_config_\d{4}-\d{2}-\d{2}\.json/);
 
     // Clear configuration
     await page.click('button:has-text("Start Fresh")');
-    
+
     // Confirm in modal
     await expect(page.locator('text=Start Fresh?')).toBeVisible();
     await page.click('button:has-text("Yes, Start Fresh")');
@@ -59,7 +59,7 @@ test.describe('Settings Persistence', () => {
 
   test('should restore from backup after clearing', async ({ page }) => {
     await page.goto('/');
-    
+
     // Dismiss welcome modal
     const welcomeButton = page.locator('button:has-text("Explore on My Own")');
     if (await welcomeButton.isVisible()) {
@@ -104,7 +104,7 @@ test.describe('Settings Persistence', () => {
 
   test('should persist settings across page reload', async ({ page }) => {
     await page.goto('/');
-    
+
     // Dismiss welcome modal
     const welcomeButton = page.locator('button:has-text("Explore on My Own")');
     if (await welcomeButton.isVisible()) {

@@ -321,12 +321,12 @@ describe('allocatePaycheck - edge cases', () => {
       // Find allocations regardless of order
       const gasBill = out.bills.find((b) => b.name === 'Gas');
       const rentBill = out.bills.find((b) => b.name === 'Rent');
-      
+
       // Gas requires full 300 for every_paycheck cadence
       expect(gasBill?.required).toBe(300);
       // Rent is prorated: 1000 * (14/30) = ~467
       expect(rentBill?.required).toBeCloseTo(466.67, 1);
-      
+
       // Total available is 600, so both get partial funding
       // They should add up to 600
       const totalAllocated = (gasBill?.allocated ?? 0) + (rentBill?.allocated ?? 0);
