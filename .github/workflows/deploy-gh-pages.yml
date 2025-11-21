@@ -32,9 +32,14 @@ jobs:
         working-directory: ./webapp
         run: npm ci
 
-      - name: Run tests
+      - name: Run unit tests
         working-directory: ./webapp
-        run: npm test -- --run --exclude='e2e/**'
+        run: npm test -- --run
+      
+      - name: Run e2e tests
+        working-directory: ./webapp
+        run: npm run test:e2e
+        continue-on-error: true
 
       - name: Build
         working-directory: ./webapp

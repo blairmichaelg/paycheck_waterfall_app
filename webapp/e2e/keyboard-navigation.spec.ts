@@ -6,7 +6,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { injectAxe, checkA11y } from '@axe-core/playwright';
+import AxeBuilder from '@axe-core/playwright';
 
 test.describe('Keyboard Navigation', () => {
   test('should support full keyboard navigation', async ({ page }) => {
@@ -113,16 +113,9 @@ test.describe('Accessibility with axe-core', () => {
       await welcomeButton.click();
     }
 
-    // Inject axe-core
-    await injectAxe(page);
-    
-    // Check for violations
-    await checkA11y(page, undefined, {
-      detailedReport: true,
-      detailedReportOptions: {
-        html: true,
-      },
-    });
+    // Check for accessibility violations
+    const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+    expect(accessibilityScanResults.violations).toEqual([]);
   });
 
   test('should have no violations on calculation results', async ({ page }) => {
@@ -141,11 +134,9 @@ test.describe('Accessibility with axe-core', () => {
     // Wait for results
     await expect(page.locator('text=Your Guilt-Free Spending')).toBeVisible();
 
-    // Inject axe and check
-    await injectAxe(page);
-    await checkA11y(page, undefined, {
-      detailedReport: true,
-    });
+    // Check for accessibility violations
+    const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+    expect(accessibilityScanResults.violations).toEqual([]);
   });
 
   test('should have no violations in settings view', async ({ page }) => {
@@ -160,10 +151,8 @@ test.describe('Accessibility with axe-core', () => {
     // Navigate to settings
     await page.click('button:has-text("Plan & Settings")');
     
-    // Inject axe and check
-    await injectAxe(page);
-    await checkA11y(page, undefined, {
-      detailedReport: true,
-    });
+    // Check for accessibility violations
+    const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+    expect(accessibilityScanResults.violations).toEqual([]);
   });
 });
