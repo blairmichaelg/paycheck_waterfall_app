@@ -13,12 +13,31 @@ export const BILL_CADENCES = [
   'annual',
 ] as const;
 
+/**
+ * ISO date string schema (YYYY-MM-DD format).
+ * Validates format and ensures the date is actually valid.
+ */
+export const isoDateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format')
+  .refine((val) => {
+    const date = new Date(val);
+    if (isNaN(date.getTime())) return false;
+    // Check if date components match input (catches invalid dates like Feb 30)
+    const [year, month, day] = val.split('-').map(Number);
+    return (
+      date.getUTCFullYear() === year &&
+      date.getUTCMonth() === month - 1 &&
+      date.getUTCDate() === day
+    );
+  }, 'Must be a valid date');
+
 export const billSchema = z.object({
   name: z.string().min(1, 'Bill name required'),
   amount: z.number().nonnegative('Bill amount must be ≥ 0'),
   cadence: z.enum(BILL_CADENCES).default('monthly'),
   dueDay: z.number().int().min(1).max(31).optional(), // Legacy, keep for old data
-  nextDueDate: z.string().optional(), // ISO date string - when is this bill next due?
+  nextDueDate: isoDateSchema.optional(), // ISO date string - when is this bill next due?
 });
 
 export const incomeRangeSchema = z
@@ -47,7 +66,7 @@ export const settingsSchema = z.object({
   percentApply: z.enum(['gross', 'remainder']),
   payFrequency: z.enum(PAY_FREQUENCIES).default('biweekly'),
   paycheckRange: incomeRangeSchema.default({ min: 0, max: 0 }),
-  nextPaycheckDate: z.string().optional(), // ISO date string - when's your next paycheck?
+  nextPaycheckDate: isoDateSchema.optional(), // ISO date string - when's your next paycheck?
 });
 
 export const userConfigSchema = z.object({

@@ -309,4 +309,40 @@ describe('storage', () => {
       expect(result.config.settings.paycheckRange.max).toBe(1000)
     })
   })
+
+  describe('import depth validation', () => {
+    it('rejects deeply nested objects', () => {
+      // Create object with 15 levels of nesting (exceeds limit of 10)
+      let deepObj: any = { value: 'deep' }
+      for (let i = 0; i < 15; i++) {
+        deepObj = { nested: deepObj }
+      }
+      
+      const result = importConfig(JSON.stringify(deepObj))
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('INVALID_CONFIG')
+    })
+
+    it('accepts shallow valid configs', () => {
+      const config = createDefaultConfig()
+      config.bills = [{ name: 'Test', amount: 100, cadence: 'monthly' }]
+      
+      const result = importConfig(JSON.stringify(config))
+      expect(result.success).toBe(true)
+    })
+
+    it('accepts reasonably nested arrays', () => {
+      const config = createDefaultConfig()
+      config.bills = [
+        { name: 'Bill1', amount: 100, cadence: 'monthly' },
+        { name: 'Bill2', amount: 200, cadence: 'monthly' },
+      ]
+      config.goals = [
+        { name: 'Goal1', type: 'percent', value: 10 },
+      ]
+      
+      const result = importConfig(JSON.stringify(config))
+      expect(result.success).toBe(true)
+    })
+  })
 })

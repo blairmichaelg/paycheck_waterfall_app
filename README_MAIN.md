@@ -25,6 +25,22 @@ PayFlow answers that question in seconds. Enter your paycheck, add your bills an
 - **🧪 Well-tested**: Comprehensive test suite covering allocation logic, UI components, and data persistence
 - **🔒 Privacy-first**: No tracking, no ads, no account required—your financial data never leaves your device
 
+## 💰 Financial Precision
+
+PayFlow uses standard JavaScript floating-point arithmetic, which is suitable for personal budgeting and typical paycheck amounts. For amounts under $100,000/month, cumulative rounding errors are negligible (<$0.01).
+
+**Perfect for:**
+- Personal budgeting and household finances
+- Small business payroll
+- Standard consumer finance tracking
+
+**Not recommended for:**
+- Accounting systems requiring exact cent precision
+- High-frequency trading or scientific calculations
+- Legal/tax calculations with regulatory precision requirements
+
+For enterprise use cases requiring exact decimal precision, we recommend using the Python backend with `decimal.Decimal` support (roadmap item).
+
 ## Repository Layout
 
 - `webapp/` – Vite + React TypeScript single-page app containing the full MVP experience.

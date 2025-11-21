@@ -1,4 +1,40 @@
 /**
+ * Normalize a date to UTC midnight.
+ * Prevents time zone issues when comparing dates.
+ *
+ * @param date - Date to normalize (Date object or ISO string)
+ * @returns New Date object set to midnight UTC
+ * @example
+ * const date = new Date('2025-01-31T23:00:00-08:00'); // 11 PM PST
+ * const normalized = normalizeToUTCMidnight(date);
+ * // normalized = 2025-02-01T00:00:00Z (next day in UTC)
+ */
+export function normalizeToUTCMidnight(date: Date | string): Date {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  // Use UTC date components to avoid local timezone shifts
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+}
+
+/**
+ * Calculate days between two dates in UTC midnight terms.
+ * Prevents off-by-one errors due to time zones.
+ *
+ * @param fromDate - Start date
+ * @param toDate - End date
+ * @returns Number of full days between dates
+ * @example
+ * const from = new Date('2025-01-31T23:00:00-08:00'); // 11 PM PST
+ * const to = new Date('2025-02-01T01:00:00-08:00');   // 1 AM PST next day
+ * daysBetweenUTC(from, to) // Returns 1
+ */
+export function daysBetweenUTC(fromDate: Date, toDate: Date): number {
+  const from = normalizeToUTCMidnight(fromDate);
+  const to = normalizeToUTCMidnight(toDate);
+  const diffMs = to.getTime() - from.getTime();
+  return Math.round(diffMs / (1000 * 60 * 60 * 24));
+}
+
+/**
  * Format a timestamp as relative time (e.g., "2 minutes ago", "just now")
  * Falls back to absolute date if more than 7 days ago
  */

@@ -82,6 +82,64 @@ export type SaveResult = {
   error?: ErrorType;
 };
 
+/**
+ * Estimate the size of data when serialized to JSON.
+ */
+function estimateStorageSize(data: unknown): number {
+  return new Blob([JSON.stringify(data)]).size;
+}
+
+/**
+ * Check if enough storage is available for the data.
+ * Uses Storage API if available, otherwise assumes sufficient space.
+ */
+async function hasEnoughStorage(requiredBytes: number): Promise<boolean> {
+  if ('storage' in navigator && 'estimate' in navigator.storage) {
+    try {
+      const estimate = await navigator.storage.estimate();
+      const available = (estimate.quota ?? Infinity) - (estimate.usage ?? 0);
+      const safetyMargin = 1.5; // Require 50% extra space
+      return available > requiredBytes * safetyMargin;
+    } catch (err) {
+      console.warn('Storage estimate failed:', err);
+      return true; // Assume OK if API fails
+    }
+  }
+  return true; // Storage API not available, proceed optimistically
+}
+
+/**
+ * Save config with pre-check for available storage (async version).
+ * Use this in async contexts for better error handling.
+ */
+export async function saveConfigSafe(cfg: UserConfig): Promise<SaveResult> {
+  try {
+    const normalized = userConfigSchema.parse({
+      ...cfg,
+      version: CONFIG_VERSION,
+      updatedAt: new Date().toISOString(),
+    });
+
+    const estimatedSize = estimateStorageSize(normalized);
+    const hasSpace = await hasEnoughStorage(estimatedSize);
+
+    if (!hasSpace) {
+      return { success: false, error: 'STORAGE_QUOTA' };
+    }
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+    return { success: true };
+  } catch (err) {
+    console.warn('saveConfigSafe: failed to write config', err);
+    const errorType = detectErrorType(err);
+    return { success: false, error: errorType };
+  }
+}
+
+/**
+ * Save config synchronously (for backward compatibility).
+ * Consider using saveConfigSafe for better storage quota handling.
+ */
 export function saveConfig(cfg: UserConfig): SaveResult {
   try {
     const normalized = userConfigSchema.parse({
@@ -120,9 +178,34 @@ export type ImportResult = {
   error?: ErrorType;
 };
 
+/**
+ * Validate JSON depth to prevent stack overflow attacks.
+ * @param obj - Object to validate
+ * @param maxDepth - Maximum allowed nesting depth (default: 10)
+ * @returns true if object is within depth limits, false otherwise
+ */
+function validateJSONDepth(obj: unknown, maxDepth = 10): boolean {
+  function checkDepth(val: unknown, depth: number): boolean {
+    if (depth > maxDepth) return false;
+    if (val && typeof val === 'object') {
+      const values = Array.isArray(val) ? val : Object.values(val);
+      return values.every((v) => checkDepth(v, depth + 1));
+    }
+    return true;
+  }
+  return checkDepth(obj, 0);
+}
+
 export function importConfig(json: string): ImportResult {
   try {
-    const { config } = parseConfig(JSON.parse(json));
+    const raw = JSON.parse(json);
+
+    // Validate depth to prevent stack overflow
+    if (!validateJSONDepth(raw)) {
+      return { success: false, error: 'INVALID_CONFIG' };
+    }
+
+    const { config } = parseConfig(raw);
     const saveResult = saveConfig(config);
     if (!saveResult.success) {
       return { success: false, error: saveResult.error };

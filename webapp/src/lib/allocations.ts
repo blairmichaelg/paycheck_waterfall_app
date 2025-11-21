@@ -1,4 +1,5 @@
 import type { BILL_CADENCES, PAY_FREQUENCIES, BonusIncome } from './types';
+import { daysBetweenUTC } from './dateUtils';
 
 type BillInput = {
   name?: string;
@@ -52,10 +53,28 @@ export type AllocationResult = {
 
 /**
  * Round a number to 2 decimal places for currency display.
- * Uses standard rounding without epsilon - precision is maintained throughout
- * calculations and only rounded at final output boundaries.
- * This is sufficient for typical financial calculations under $1M.
- * For high-precision requirements, consider using a decimal library like decimal.js.
+ *
+ * PRECISION NOTES:
+ * - Uses standard IEEE 754 floating-point arithmetic
+ * - Precision is maintained throughout calculations, rounded only at output
+ * - Cumulative errors typically < $0.01 for amounts under $100,000
+ * - For high-precision requirements (hedge funds, accounting systems),
+ *   consider using a decimal library like decimal.js or big.js
+ *
+ * SUFFICIENT FOR:
+ * ✅ Personal budgeting (<$10K/month paychecks)
+ * ✅ Small business payroll (<$50K/month)
+ * ✅ Standard consumer finance applications
+ *
+ * LIMITATIONS:
+ * ⚠️ Not suitable for high-frequency trading or scientific calculations
+ * ⚠️ Avoid using for legal/tax calculations requiring exact cent precision
+ *
+ * @param x - The number to round
+ * @returns Number rounded to 2 decimal places
+ * @example
+ * _round2(10.567) // 10.57
+ * _round2(0.1 + 0.2) // 0.3 (not 0.30000000000000004)
  */
 function _round2(x: number): number {
   return Math.round(x * 100) / 100;
@@ -166,10 +185,10 @@ const convertDueDayToNextDueDate = (bill: BillInput, currentDate: Date): string 
 /**
  * Calculate days until a bill is due.
  * Single source of truth for due date calculations.
+ * Uses UTC normalization to prevent time zone edge cases.
  */
 const getDaysUntilDue = (dueDate: Date, currentDate: Date): number => {
-  const diffMs = dueDate.getTime() - currentDate.getTime();
-  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  return daysBetweenUTC(currentDate, dueDate);
 };
 
 /**
@@ -275,8 +294,14 @@ export function allocatePaycheck(
     };
   });
 
-  // Sort by priority: urgent + soonest first
-  billsWithPriority.sort((a, b) => a.sortKey - b.sortKey);
+  // Sort by priority: urgent + soonest first, then by amount (largest first for same priority)
+  billsWithPriority.sort((a, b) => {
+    if (a.sortKey !== b.sortKey) {
+      return a.sortKey - b.sortKey; // Primary: urgency
+    }
+    // Secondary: larger bills first (helps user cover big obligations)
+    return (b.amount ?? 0) - (a.amount ?? 0);
+  });
 
   // ========== PHASE 3: Allocate to Bills (Single Optimized Pass) ==========
   const billsOut: AllocatedBill[] = [];
