@@ -53,3 +53,28 @@ export const formatDateShort = (date: Date | string): string => {
     day: 'numeric',
   }).format(d);
 };
+
+/**
+ * Format a timestamp as relative time (e.g., "3 hours ago").
+ * Uses friendly, positive language aligned with app philosophy.
+ * @param timestamp - Unix timestamp in milliseconds
+ * @returns Formatted relative time string
+ */
+export const formatTimeAgo = (timestamp: number): string => {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (seconds < 60) {
+    return 'just now';
+  } else if (minutes < 60) {
+    return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
+  } else if (hours < 24) {
+    return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+  } else {
+    return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+  }
+};

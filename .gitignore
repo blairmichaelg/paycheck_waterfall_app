@@ -41,3 +41,16 @@ yarn-error.log*
 
 # Local Netlify folder
 .netlify
+
+# Profiling and debugging
+*.cpuprofile
+*.heapprofile
+
+# Test reports and coverage
+/webapp/playwright-report/
+/webapp/test-results/
+/webapp/coverage/
+/webapp/.playwright/
+
+# OS-specific
+Thumbs.db

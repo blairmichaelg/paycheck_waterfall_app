@@ -1,0 +1,65 @@
+{
+  "name": "PayFlow - Paycheck Waterfall",
+  "short_name": "PayFlow",
+  "description": "Your guilt-free spending companion. See exactly how much you can spend after bills and goals.",
+  "start_url": "/paycheck_waterfall_app/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    {
+      "src": "/paycheck_waterfall_app/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/paycheck_waterfall_app/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/paycheck_waterfall_app/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/paycheck_waterfall_app/screenshot-desktop.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Calculate Paycheck",
+      "short_name": "Calculate",
+      "description": "Calculate your guilt-free spending",
+      "url": "/paycheck_waterfall_app/?view=spend",
+      "icons": [
+        {
+          "src": "/paycheck_waterfall_app/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "View Waterfall",
+      "short_name": "Waterfall",
+      "description": "See your waterfall breakdown",
+      "url": "/paycheck_waterfall_app/?view=breakdown",
+      "icons": [
+        {
+          "src": "/paycheck_waterfall_app/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

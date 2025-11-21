@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BREAKPOINTS } from './constants';
 
 /**
@@ -18,4 +18,39 @@ export function useIsMobile(): boolean {
   }, []);
 
   return isMobile;
+}
+
+/**
+ * Hook to debounce effect execution.
+ * Useful for expensive operations like localStorage writes.
+ * 
+ * @param effect - The effect function to debounce
+ * @param deps - Dependencies array
+ * @param delay - Debounce delay in milliseconds (default: 300ms)
+ */
+export function useDebouncedEffect(
+  effect: () => void,
+  deps: React.DependencyList,
+  delay = 300
+): void {
+  const timeoutRef = useRef<number>();
+
+  useEffect(() => {
+    // Clear previous timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    // Set new timeout
+    timeoutRef.current = setTimeout(() => {
+      effect();
+    }, delay);
+
+    // Cleanup
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, deps);
 }

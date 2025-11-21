@@ -273,7 +273,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme, onExpo
                   🎉 Great start! Add a bill or two
                 </div>
                 <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6 }}>
-                  Just the basics—we'll show you exactly how much you can spend guilt-free!
+                  Just the basics—we&apos;ll show you exactly how much you can spend guilt-free!
                   You can always edit or remove bills later.
                 </div>
               </div>

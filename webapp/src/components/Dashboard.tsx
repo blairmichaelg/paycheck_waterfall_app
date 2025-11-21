@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { allocatePaycheck } from '../lib/allocations';
 import { trackEvent } from '../lib/analytics';
 import { getThemeColors, type Theme } from '../lib/theme';
@@ -14,14 +14,14 @@ export default function Dashboard({
   theme,
   initialResult,
   onRangeUpdate,
-  onConfigUpdate,
+  _onConfigUpdate,
 }: {
   config: UserConfig;
   onResult?: (result: AllocationResult) => void;
   theme: Theme;
   initialResult?: AllocationResult | null;
   onRangeUpdate?: (min: number, max: number) => void;
-  onConfigUpdate?: (config: UserConfig) => void;
+  _onConfigUpdate?: (config: UserConfig) => void;
 }) {
   const colors = getThemeColors(theme);
   const [lastResult, setLastResult] = useState<AllocationResult | null>(initialResult ?? null);
@@ -30,6 +30,7 @@ export default function Dashboard({
   const [showDetails, setShowDetails] = useState(false);
   const isMobile = useIsMobile();
   const [isCalculating, setIsCalculating] = useState(false);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   const settings = config.settings;
   const percentApply = settings?.percentApply ?? 'gross';
@@ -83,6 +84,11 @@ export default function Dashboard({
         setLastResult(res);
         onResult?.(res);
         trackEvent('paycheckCalculations');
+        
+        // Move focus to result for screen readers
+        setTimeout(() => {
+          resultRef.current?.focus();
+        }, 100);
       } catch (err) {
         const errorMsg = getErrorMessage('CALCULATION_FAILED');
         setError(`${errorMsg.icon} ${errorMsg.message}`);
@@ -128,7 +134,13 @@ export default function Dashboard({
               type="text"
               inputMode="decimal"
               value={amountInput}
-              onChange={(e) => setAmountInput(e.target.value.replace(/[^0-9.]/g, ''))}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Allow only numbers and a single decimal point
+                if (value === '' || /^[0-9]*\.?[0-9]*$/.test(value)) {
+                  setAmountInput(value);
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !isCalculating) {
                   run();
@@ -244,6 +256,10 @@ export default function Dashboard({
       {lastResult ? (
         <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div
+            ref={resultRef}
+            tabIndex={-1}
+            aria-live="polite"
+            aria-label="Calculation complete"
             style={{
               background: colors.successGradient,
               borderRadius: 20,
@@ -251,6 +267,7 @@ export default function Dashboard({
               boxShadow: '0 12px 32px rgba(16, 185, 129, 0.4)',
               border: '2px solid rgba(255,255,255,0.2)',
               transition: 'background 0.3s ease',
+              outline: 'none',
             }}
           >
             <div
@@ -381,7 +398,7 @@ export default function Dashboard({
               transition: 'all 0.3s ease',
             }}
           >
-            <h4
+            <h2
               style={{
                 marginTop: 0,
                 fontSize: 18,
@@ -391,7 +408,7 @@ export default function Dashboard({
               }}
             >
               📋 Bills Funded This Paycheck
-            </h4>
+            </h2>
             {lastResult.bills.length === 0 ? (
               <div style={{ color: colors.textMuted }}>No bills configured.</div>
             ) : isMobile ? (
@@ -612,7 +629,7 @@ export default function Dashboard({
               transition: 'all 0.3s ease',
             }}
           >
-            <h4
+            <h2
               style={{
                 marginTop: 0,
                 fontSize: 18,
@@ -622,7 +639,7 @@ export default function Dashboard({
               }}
             >
               🎯 Goals
-            </h4>
+            </h2>
             {lastResult.goals.length === 0 ? (
               <div style={{ color: colors.textMuted }}>No goals configured.</div>
             ) : isMobile ? (

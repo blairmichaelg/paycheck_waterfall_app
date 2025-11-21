@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { getThemeColors, type Theme } from '../lib/theme';
 import { formatCurrency } from '../lib/formatters';
-import { BREAKPOINTS } from '../lib/constants';
+import { useIsMobile } from '../lib/hooks';
 import type { AllocationResult } from '../lib/allocations';
 import type { UserConfig } from '../lib/types';
 
@@ -9,7 +9,6 @@ type BreakdownProps = {
   allocation: AllocationResult;
   config: UserConfig;
   theme: Theme;
-  onNewPaycheck?: (amount: number) => void;
 };
 
 // Flow connector component
@@ -35,11 +34,9 @@ const FlowConnector = () => (
   </div>
 );
 
-export default function Breakdown({ allocation, config, theme, onNewPaycheck }: BreakdownProps) {
+export default function Breakdown({ allocation, config, theme }: BreakdownProps) {
   const colors = getThemeColors(theme);
-  const [isMobile] = useState(() => window.innerWidth <= BREAKPOINTS.mobile);
-  const [quickAmount, setQuickAmount] = useState('');
-
+  const isMobile = useIsMobile();
   const settings = config.settings;
 
   return (

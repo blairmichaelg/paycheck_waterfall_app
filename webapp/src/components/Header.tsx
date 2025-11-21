@@ -16,7 +16,7 @@ export default function Header({ lastAllocation, theme, onToggleTheme }: HeaderP
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= BREAKPOINTS.mobile;
 
   return (
-    <header style={{ marginBottom: 24, textAlign: 'center', position: 'relative' }}>
+    <div style={{ marginBottom: 24, textAlign: 'center', position: 'relative' }}>
       <button
         onClick={onToggleTheme}
         style={{
@@ -106,6 +106,6 @@ export default function Header({ lastAllocation, theme, onToggleTheme }: HeaderP
           </div>
         </div>
       )}
-    </header>
+    </div>
   );
 }

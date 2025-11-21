@@ -8,7 +8,7 @@ import ConfirmModal from './components/ConfirmModal';
 import WelcomeModal from './components/WelcomeModal';
 import {
   loadConfig,
-  saveConfig,
+  saveConfigSafe,
   exportConfig,
   importConfig,
   clearConfig,
@@ -20,11 +20,11 @@ import {
 } from './lib/storage';
 import { loadTheme, saveTheme, getThemeColors, type Theme } from './lib/theme';
 import { trackSession, trackEvent } from './lib/analytics';
-import { formatCurrency } from './lib/formatters';
-import { allocatePaycheck, type AllocationResult } from './lib/allocations';
+import { formatCurrency, formatTimeAgo } from './lib/formatters';
+import type { AllocationResult } from './lib/allocations';
 import type { UserConfig } from './lib/types';
 import { getErrorMessage } from './lib/errorMessages';
-import { useIsMobile } from './lib/hooks';
+import { useIsMobile, useDebouncedEffect } from './lib/hooks';
 
 export default function App() {
   const [config, setConfig] = useState<UserConfig>(() => {
@@ -62,7 +62,7 @@ export default function App() {
     const hasNoGoals = config.goals.length === 0;
     return !hasSeenWelcome && hasNoBills && hasNoGoals;
   });
-  const [backupAvailable, setBackupAvailable] = useState(() => hasValidBackup().exists);
+  const [backupInfo, setBackupInfo] = useState(() => hasValidBackup());
 
   const colors = getThemeColors(theme);
 
@@ -75,10 +75,10 @@ export default function App() {
 
   // Config loaded on mount via useState initializer, no need for redundant useEffect
 
-  // Persist allocation result whenever it changes
-  useEffect(() => {
+  // Persist allocation result whenever it changes (debounced for performance)
+  useDebouncedEffect(() => {
     saveAllocation(lastAllocation);
-  }, [lastAllocation]);
+  }, [lastAllocation], 500);
 
   useEffect(() => {
     // Track session on app load (privacy-friendly, local only)
@@ -92,8 +92,8 @@ export default function App() {
     setToastState({ show: true, message, variant });
   };
 
-  const handleSave = (c: UserConfig) => {
-    const saveResult = saveConfig(c);
+  const handleSave = async (c: UserConfig) => {
+    const saveResult = await saveConfigSafe(c);
     if (saveResult.success) {
       setConfig(c);
       setLastSavedAt(Date.now());
@@ -106,71 +106,7 @@ export default function App() {
     }
   };
 
-  const handleQuickPaycheck = (amount: number) => {
-    // Auto-adjust range if paycheck is outside current range
-    const currentRange = config.settings.paycheckRange;
-    let updated = false;
-    let newMin = currentRange.min;
-    let newMax = currentRange.max;
-
-    if (amount < currentRange.min) {
-      newMin = amount;
-      updated = true;
-    }
-    if (amount > currentRange.max) {
-      newMax = amount;
-      updated = true;
-    }
-
-    if (updated) {
-      const updatedConfig = {
-        ...config,
-        settings: {
-          ...config.settings,
-          paycheckRange: { min: newMin, max: newMax },
-        },
-      };
-      saveConfig(updatedConfig);
-      setConfig(updatedConfig);
-
-      if (newMin !== currentRange.min) {
-        showToast(`Updated min to ${formatCurrency(newMin)}`, 'info');
-      }
-      if (newMax !== currentRange.max) {
-        showToast(`Updated max to ${formatCurrency(newMax)}`, 'info');
-      }
-    }
-
-    // Process the paycheck using Dashboard's allocation logic
-    const settings = updated
-      ? { ...config.settings, paycheckRange: { min: newMin, max: newMax } }
-      : config.settings;
-    const percentApply = settings?.percentApply ?? 'gross';
-    const upcomingDays =
-      settings?.payFrequency === 'weekly' ? 7 : settings?.payFrequency === 'monthly' ? 30 : 14;
-
-    try {
-      const result = allocatePaycheck(amount, config.bills, config.goals, {
-        percentApply,
-        bonuses: config.bonuses,
-        paycheckRange: settings.paycheckRange,
-        nextPaycheckDate: settings.nextPaycheckDate,
-        upcomingDays,
-      });
-      setLastAllocation(result);
-      setActiveView('spend'); // Switch to main view to see results
-      showToast(
-        `Paycheck allocated! You have ${formatCurrency(result.guilt_free)} guilt-free!`,
-        'success'
-      );
-      trackEvent('paycheckCalculations');
-    } catch (err) {
-      showToast('Failed to process paycheck', 'error');
-      console.error('Allocation error:', err);
-    }
-  };
-
-  const handleRangeUpdate = (newMin: number, newMax: number) => {
+  const handleRangeUpdate = async (newMin: number, newMax: number) => {
     const currentRange = config.settings.paycheckRange;
     const updatedConfig = {
       ...config,
@@ -179,7 +115,7 @@ export default function App() {
         paycheckRange: { min: newMin, max: newMax },
       },
     };
-    saveConfig(updatedConfig);
+    await saveConfigSafe(updatedConfig);
     setConfig(updatedConfig);
 
     if (newMin !== currentRange.min) {
@@ -199,6 +135,32 @@ export default function App() {
         transition: 'background 0.3s ease',
       }}
     >
+      {/* Skip link for keyboard navigation */}
+      <a
+        href="#main-content"
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          zIndex: 999,
+          padding: '1em',
+          background: colors.cardBg,
+          color: colors.textPrimary,
+          borderRadius: '8px',
+          textDecoration: 'none',
+          fontWeight: 600,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.left = '1em';
+          e.currentTarget.style.top = '1em';
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.left = '-9999px';
+        }}
+      >
+        Skip to main content
+      </a>
+
       <div
         style={{
           maxWidth: isMobile ? '100%' : 1200,
@@ -298,7 +260,7 @@ export default function App() {
         </nav>
 
         {/* Backup Restoration Banner */}
-        {backupAvailable && activeView === 'plan' && (
+        {backupInfo.exists && activeView === 'plan' && (
           <div
             style={{
               background: colors.successBg,
@@ -323,7 +285,7 @@ export default function App() {
                   Backup Available
                 </div>
                 <div style={{ color: colors.textSecondary, fontSize: 13 }}>
-                  We saved your last settings (available for 24 hours)
+                  Saved {backupInfo.timestamp ? formatTimeAgo(backupInfo.timestamp) : 'recently'} • Available for 24 hours
                 </div>
               </div>
             </div>
@@ -334,7 +296,7 @@ export default function App() {
                   const loadResult = loadConfig();
                   setConfig(loadResult.config);
                   setLastSavedAt(Date.now());
-                  setBackupAvailable(false);
+                  setBackupInfo({ exists: false });
                   showToast('✨ Settings restored successfully!', 'success');
                 } else {
                   const errorMsg = getErrorMessage('LOAD_FAILED');
@@ -376,7 +338,7 @@ export default function App() {
           }}
         >
           <div
-            id={`${activeView}-panel`}
+            id="main-content"
             role="tabpanel"
             aria-labelledby={`${activeView}-tab`}
             tabIndex={0}
@@ -414,7 +376,6 @@ export default function App() {
                   allocation={lastAllocation}
                   config={config}
                   theme={theme}
-                  onNewPaycheck={handleQuickPaycheck}
                 />
               ) : (
                 <div style={{ padding: isMobile ? 24 : 48, textAlign: 'center' }}>
@@ -535,7 +496,7 @@ export default function App() {
                 theme={theme}
                 initialResult={lastAllocation}
                 onRangeUpdate={handleRangeUpdate}
-                onConfigUpdate={handleSave}
+                _onConfigUpdate={handleSave}
               />
             )}
           </div>
@@ -668,7 +629,7 @@ export default function App() {
                       </div>
                     </label>
 
-                    {backupAvailable && (
+                    {backupInfo.exists && (
                       <button
                         onClick={() => {
                           const restored = restoreConfigFromBackup();
@@ -676,7 +637,7 @@ export default function App() {
                             const loadResult = loadConfig();
                             setConfig(loadResult.config);
                             setLastSavedAt(Date.now());
-                            setBackupAvailable(false);
+                            setBackupInfo({ exists: false });
                             showToast('✨ Configuration restored successfully!', 'success');
                           } else {
                             const errorMsg = getErrorMessage('LOAD_FAILED');
@@ -857,7 +818,7 @@ export default function App() {
                 setConfig(next);
                 setLastAllocation(null); // Clear allocation result too
                 setLastSavedAt(Date.now());
-                setBackupAvailable(true);
+                setBackupInfo({ exists: true, timestamp: Date.now() });
                 showToast('✨ Fresh start! Your old settings are backed up for 24 hours.', 'success');
               } catch (err) {
                 showToast('Failed to clear configuration', 'error');
