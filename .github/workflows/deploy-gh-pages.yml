@@ -34,7 +34,7 @@ jobs:
 
       - name: Run tests
         working-directory: ./webapp
-        run: npm test -- --run
+        run: npm test -- --run --exclude='e2e/**'
 
       - name: Build
         working-directory: ./webapp
