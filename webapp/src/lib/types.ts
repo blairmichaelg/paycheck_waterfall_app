@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const CONFIG_VERSION = 4 as const;
+export const CONFIG_VERSION = 5 as const;
 
 export const PAY_FREQUENCIES = ['weekly', 'biweekly', 'semi_monthly', 'monthly'] as const;
 export const BILL_CADENCES = [
@@ -38,6 +38,8 @@ export const billSchema = z.object({
   cadence: z.enum(BILL_CADENCES).default('monthly'),
   dueDay: z.number().int().min(1).max(31).optional(), // Legacy, keep for old data
   nextDueDate: isoDateSchema.optional(), // ISO date string - when is this bill next due?
+  paid: z.boolean().default(false), // Has this bill been paid for the current period?
+  paidDate: isoDateSchema.optional(), // When was it marked as paid?
 });
 
 export const incomeRangeSchema = z

@@ -537,6 +537,7 @@ export default function App() {
                 theme={theme}
                 initialResult={lastAllocation}
                 onRangeUpdate={handleRangeUpdate}
+                onConfigUpdate={handleSave}
               />
             )}
           </div>

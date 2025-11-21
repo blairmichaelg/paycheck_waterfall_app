@@ -42,6 +42,7 @@ export type AllocationResult = {
   bills: AllocatedBill[];
   goals: AllocatedGoal[];
   guilt_free: number;
+  spending_tracked?: number; // Optional: track spending against guilt-free amount
   meta: {
     paycheck: number;
     baseline_from_minimum: number; // What we allocated from minimum

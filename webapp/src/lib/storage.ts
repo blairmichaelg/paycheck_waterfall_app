@@ -156,10 +156,17 @@ export function saveConfig(cfg: UserConfig): SaveResult {
   }
 }
 
-export function clearConfig() {
+export function clearConfig(options?: { keepBackup?: boolean }) {
   const defaults = createDefaultConfig();
   try {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(ALLOCATION_KEY); // Also clear last allocation
+    
+    // Optionally clear backup
+    if (!options?.keepBackup) {
+      localStorage.removeItem(BACKUP_KEY);
+      localStorage.removeItem(BACKUP_TIMESTAMP_KEY);
+    }
   } catch (err) {
     console.warn('clearConfig: failed to remove existing config', err);
   }
