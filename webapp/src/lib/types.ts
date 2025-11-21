@@ -4,6 +4,7 @@ export const CONFIG_VERSION = 5 as const;
 
 export const PAY_FREQUENCIES = ['weekly', 'biweekly', 'semi_monthly', 'monthly'] as const;
 export const BILL_CADENCES = [
+  'one_time',
   'every_paycheck',
   'weekly',
   'biweekly',

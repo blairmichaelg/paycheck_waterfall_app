@@ -61,8 +61,8 @@ export default function Breakdown({ allocation, config, theme }: BreakdownProps)
           boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
           border: '3px solid rgba(255,255,255,0.3)',
           textAlign: 'center',
-          width: '100%',
-          maxWidth: isMobile ? '100%' : 420,
+          width: isMobile ? '100%' : '85%',
+          maxWidth: 420,
         }}
       >
         <div
@@ -94,7 +94,7 @@ export default function Breakdown({ allocation, config, theme }: BreakdownProps)
       {/* BILLS LEVEL */}
       {allocation.bills.length > 0 && (
         <>
-          <div style={{ width: '100%', maxWidth: isMobile ? '100%' : 500 }}>
+          <div style={{ width: isMobile ? '100%' : '90%', maxWidth: 500 }}>
             <div
               style={{
                 fontSize: 13,
@@ -218,7 +218,7 @@ export default function Breakdown({ allocation, config, theme }: BreakdownProps)
       {/* GOALS LEVEL */}
       {allocation.goals.length > 0 && (
         <>
-          <div style={{ width: '100%', maxWidth: isMobile ? '100%' : 500 }}>
+          <div style={{ width: isMobile ? '100%' : '90%', maxWidth: 500 }}>
             <div
               style={{
                 fontSize: 13,
@@ -335,8 +335,8 @@ export default function Breakdown({ allocation, config, theme }: BreakdownProps)
           boxShadow: '0 16px 48px rgba(16, 185, 129, 0.5)',
           border: '3px solid rgba(255,255,255,0.3)',
           textAlign: 'center',
-          width: '100%',
-          maxWidth: isMobile ? '100%' : 520,
+          width: isMobile ? '100%' : '92%',
+          maxWidth: 520,
           marginTop: 8,
         }}
       >
@@ -379,8 +379,8 @@ export default function Breakdown({ allocation, config, theme }: BreakdownProps)
       {/* Settings Info (collapsed at bottom) */}
       <div
         style={{
-          width: '100%',
-          maxWidth: isMobile ? '100%' : 600,
+          width: isMobile ? '100%' : '95%',
+          maxWidth: 600,
           marginTop: 32,
           padding: isMobile ? '16px' : '20px',
           background: colors.surfaceBg,

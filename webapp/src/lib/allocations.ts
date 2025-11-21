@@ -82,9 +82,9 @@ function _round2(x: number): number {
 }
 
 /**
- * Average days per cadence. For 'every_paycheck', use actual pay frequency.
+ * Average days per cadence. For 'every_paycheck' and 'one_time', handle separately.
  */
-const daysPerCadence: Record<Exclude<(typeof BILL_CADENCES)[number], 'every_paycheck'>, number> = {
+const daysPerCadence: Record<Exclude<(typeof BILL_CADENCES)[number], 'every_paycheck' | 'one_time'>, number> = {
   weekly: 7,
   biweekly: 14,
   semi_monthly: 15,
@@ -115,10 +115,11 @@ function getDaysPerPaycheck(payFrequency?: (typeof PAY_FREQUENCIES)[number]): nu
  * Calculate how much of a bill is needed based on when it's due.
  * 
  * LOGIC:
- * 1. If bill is due within the paycheck window → full amount
- * 2. For monthly bills: if due within ~30 days → full amount (user expects to pay monthly bills in full)
- * 3. For 'every_paycheck': full amount
- * 4. Otherwise: prorate based on time until next paycheck
+ * 1. One-time bills: full amount (pay it once and done)
+ * 2. If bill is due within the paycheck window → full amount
+ * 3. For monthly bills: if due within ~30 days → full amount (user expects to pay monthly bills in full)
+ * 4. For 'every_paycheck': full amount
+ * 5. Otherwise: prorate based on time until next paycheck
  */
 const calculateBillPortionNeeded = (
   amount: number,
@@ -127,6 +128,11 @@ const calculateBillPortionNeeded = (
   daysUntilDue?: number,
   _payFrequency?: (typeof PAY_FREQUENCIES)[number]
 ): number => {
+  // One-time bills always need full amount
+  if (cadence === 'one_time') {
+    return amount;
+  }
+
   // If we have a specific due date and it's within the upcoming period, need full amount
   if (daysUntilDue !== undefined && daysUntilDue <= daysAhead) {
     return amount;

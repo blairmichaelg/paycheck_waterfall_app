@@ -117,13 +117,7 @@ export default function App() {
     };
     await saveConfigSafe(updatedConfig);
     setConfig(updatedConfig);
-
-    if (newMin !== currentRange.min) {
-      showToast(`Updated min to ${formatCurrency(newMin)}`, 'info');
-    }
-    if (newMax !== currentRange.max) {
-      showToast(`Updated max to ${formatCurrency(newMax)}`, 'info');
-    }
+    // Toast is now shown by Dashboard when auto-adjusting
   };
 
   return (
@@ -497,6 +491,7 @@ export default function App() {
                 initialResult={lastAllocation}
                 onRangeUpdate={handleRangeUpdate}
                 _onConfigUpdate={handleSave}
+                onToast={showToast}
               />
             )}
           </div>

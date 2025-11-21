@@ -2,6 +2,7 @@ import React, { useEffect, useId, useState } from 'react';
 import { getThemeColors, type Theme } from '../lib/theme';
 import ConfirmModal from './ConfirmModal';
 import { formatRelativeTime } from '../lib/dateUtils';
+import { formatCadence } from '../lib/formatters';
 import { getErrorMessage } from '../lib/errorMessages';
 import { useIsMobile } from '../lib/hooks';
 import {
@@ -323,7 +324,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme, onExpo
                     >
                       {BILL_CADENCES.map((cadence) => (
                         <option key={cadence} value={cadence}>
-                          {cadence.replace('_', ' ')}
+                          {formatCadence(cadence)}
                         </option>
                       ))}
                     </select>
@@ -738,7 +739,7 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme, onExpo
                     >
                       {BILL_CADENCES.map((cadence) => (
                         <option key={cadence} value={cadence}>
-                          {cadence.replace('_', ' ')}
+                          {formatCadence(cadence)}
                         </option>
                       ))}
                     </select>

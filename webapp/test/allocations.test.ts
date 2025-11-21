@@ -203,4 +203,60 @@ describe('allocatePaycheck', () => {
     expect(zombieBurger?.required).toBe(100) // Full amount, not prorated
     expect(courtFees?.required).toBe(136) // Full amount, not prorated
   })
+
+  it('one_time bills always require full amount', () => {
+    const out = allocatePaycheck(
+      1000,
+      [
+        { name: 'New Tires', amount: 400, cadence: 'one_time' },
+        { name: 'Water Bill', amount: 100, cadence: 'monthly' }
+      ],
+      [],
+      { upcomingDays: 30 } // Monthly period
+    )
+    
+    // One-time bill should require full amount regardless of paycheck frequency
+    const tires = out.bills.find((b) => b.name === 'New Tires')
+    expect(tires?.required).toBe(400) // Full amount, never prorated
+    expect(tires?.allocated).toBe(400) // Should be fully funded
+    
+    // Monthly bill should require full amount with 30 day window
+    const water = out.bills.find((b) => b.name === 'Water Bill')
+    expect(water?.required).toBe(100)
+    expect(water?.allocated).toBe(100)
+    
+    // Should have guilt-free money left
+    expect(out.guilt_free).toBe(500)
+  })
+
+  it('one_time bills mixed with recurring bills are prioritized correctly', () => {
+    const out = allocatePaycheck(
+      600,
+      [
+        { name: 'One-time Medical', amount: 200, cadence: 'one_time' },
+        { name: 'Rent', amount: 500, cadence: 'monthly', dueDay: 1 },
+        { name: 'One-time Car Repair', amount: 300, cadence: 'one_time' }
+      ],
+      [],
+      { upcomingDays: 30 }
+    )
+    
+    // All bills should require their full amount (one_time and monthly always full)
+    const medical = out.bills.find((b) => b.name === 'One-time Medical')
+    const rent = out.bills.find((b) => b.name === 'Rent')
+    const carRepair = out.bills.find((b) => b.name === 'One-time Car Repair')
+    
+    expect(medical?.required).toBe(200)
+    expect(rent?.required).toBe(500)
+    expect(carRepair?.required).toBe(300)
+    
+    // Should allocate to bills until money runs out
+    const totalAllocated = out.bills.reduce((sum, b) => sum + b.allocated, 0)
+    expect(totalAllocated).toBe(600) // All money goes to bills
+    expect(out.guilt_free).toBe(0)
+    
+    // At least one bill should be fully funded
+    const fullyFundedCount = out.bills.filter((b) => b.allocated === b.required).length
+    expect(fullyFundedCount).toBeGreaterThan(0)
+  })
 })

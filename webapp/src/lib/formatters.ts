@@ -78,3 +78,22 @@ export const formatTimeAgo = (timestamp: number): string => {
     return `${days} ${days === 1 ? 'day' : 'days'} ago`;
   }
 };
+
+/**
+ * Format bill/bonus cadence for display.
+ * @param cadence - The cadence value
+ * @returns User-friendly cadence label
+ */
+export const formatCadence = (cadence: string): string => {
+  const labels: Record<string, string> = {
+    one_time: 'One-time',
+    every_paycheck: 'Every paycheck',
+    weekly: 'Weekly',
+    biweekly: 'Biweekly',
+    semi_monthly: 'Semi-monthly',
+    monthly: 'Monthly',
+    quarterly: 'Quarterly',
+    annual: 'Annual',
+  };
+  return labels[cadence] || cadence.replace('_', ' ');
+};

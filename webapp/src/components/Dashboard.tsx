@@ -15,6 +15,7 @@ export default function Dashboard({
   initialResult,
   onRangeUpdate,
   _onConfigUpdate,
+  onToast,
 }: {
   config: UserConfig;
   onResult?: (result: AllocationResult) => void;
@@ -22,6 +23,7 @@ export default function Dashboard({
   initialResult?: AllocationResult | null;
   onRangeUpdate?: (min: number, max: number) => void;
   _onConfigUpdate?: (config: UserConfig) => void;
+  onToast?: (message: string, variant?: 'success' | 'error' | 'warning' | 'info') => void;
 }) {
   const colors = getThemeColors(theme);
   const [lastResult, setLastResult] = useState<AllocationResult | null>(initialResult ?? null);
@@ -61,6 +63,10 @@ export default function Dashboard({
       const newMin = Math.min(parsed, currentRange.min);
       const newMax = Math.max(parsed, currentRange.max);
       onRangeUpdate(newMin, newMax);
+      // Show transparent feedback about range adjustment
+      if (onToast) {
+        onToast(`✨ Paycheck range auto-adjusted to ${formatCurrency(newMin)} - ${formatCurrency(newMax)}`, 'info');
+      }
     }
 
     // Use setTimeout to allow UI to update with loading state
@@ -294,7 +300,25 @@ export default function Dashboard({
               {formatCurrency(lastResult.guilt_free)}
             </div>
             
-            {/* Simple breakdown - Always visible for transparency */}
+            {/* Positive message when guilt-free is zero */}
+            {lastResult.guilt_free === 0 && (
+              <div
+                style={{
+                  marginTop: 12,
+                  padding: 12,
+                  background: 'rgba(255,255,255,0.2)',
+                  borderRadius: 10,
+                  fontSize: 14,
+                  color: '#ffffff',
+                  fontWeight: 600,
+                  textAlign: 'center',
+                }}
+              >
+                💪 Hang in there! Your bills are covered—that&apos;s what matters.
+              </div>
+            )}
+            
+            {/* Calculation breakdown - Always visible for transparency */}
             <div
               style={{
                 marginTop: 16,
@@ -302,40 +326,56 @@ export default function Dashboard({
                 borderTop: '1px solid rgba(255,255,255,0.3)',
                 fontSize: 13,
                 color: 'rgba(255,255,255,0.95)',
-                lineHeight: 1.6,
+                lineHeight: 1.8,
               }}
             >
-              <div style={{ fontSize: 11, opacity: 0.85, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                💡 How we calculated this:
+              <div style={{ fontSize: 11, opacity: 0.85, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
+                💡 How we calculated this
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span>Paycheck:</span>
-                <strong>{formatCurrency(lastResult.meta.paycheck)}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span>− Bills:</span>
-                <strong>{formatCurrency(lastResult.bills.reduce((sum, b) => sum + b.allocated, 0))}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span>− Goals:</span>
-                <strong>{formatCurrency(lastResult.goals.reduce((sum, g) => sum + g.allocated, 0))}</strong>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <span style={{ opacity: 0.9 }}>💵 Your paycheck</span>
+                <strong style={{ fontSize: 14 }}>{formatCurrency(lastResult.meta.paycheck)}</strong>
               </div>
               {lastResult.meta.supplemental_income > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, opacity: 0.9 }}>
-                  <span>+ Bonus:</span>
-                  <strong>{formatCurrency(lastResult.meta.supplemental_income)}</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <span style={{ opacity: 0.9 }}>💰 + Bonus income</span>
+                  <strong style={{ fontSize: 14 }}>+{formatCurrency(lastResult.meta.supplemental_income)}</strong>
                 </div>
               )}
+              {lastResult.meta.supplemental_income > 0 && (
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  paddingTop: 6,
+                  marginBottom: 8,
+                  borderTop: '1px dashed rgba(255,255,255,0.2)',
+                  fontSize: 12,
+                  opacity: 0.85,
+                }}>
+                  <span>Total available:</span>
+                  <strong>{formatCurrency(lastResult.meta.paycheck + lastResult.meta.supplemental_income)}</strong>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4, marginTop: lastResult.meta.supplemental_income > 0 ? 0 : 8 }}>
+                <span style={{ opacity: 0.9 }}>🏠 − Bills allocated ({lastResult.bills.length})</span>
+                <strong style={{ fontSize: 14, color: 'rgba(255,180,180,1)' }}>−{formatCurrency(lastResult.bills.reduce((sum, b) => sum + b.allocated, 0))}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <span style={{ opacity: 0.9 }}>🎯 − Goals allocated ({lastResult.goals.length})</span>
+                <strong style={{ fontSize: 14, color: 'rgba(255,180,180,1)' }}>−{formatCurrency(lastResult.goals.reduce((sum, g) => sum + g.allocated, 0))}</strong>
+              </div>
               <div style={{ 
                 display: 'flex', 
-                justifyContent: 'space-between', 
-                marginTop: 10, 
-                paddingTop: 10,
-                borderTop: '1px solid rgba(255,255,255,0.2)',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginTop: 12, 
+                paddingTop: 12,
+                borderTop: '2px solid rgba(255,255,255,0.4)',
                 fontWeight: 700,
+                fontSize: 15,
               }}>
-                <span>= Guilt-Free:</span>
-                <strong>{formatCurrency(lastResult.guilt_free)}</strong>
+                <span>💚 Your guilt-free spending</span>
+                <strong style={{ fontSize: 16 }}>{formatCurrency(lastResult.guilt_free)}</strong>
               </div>
             </div>
           </div>
