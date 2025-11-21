@@ -6,12 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased]
+## [1.0.0] - 2025-11-20
 
-### 🎯 Planned
-- Extract allocation logic into shared Python package
-- REST API backend for future integrations
+### 🎉 Official Release
+- **First Major Release**: Feature-complete, tested, and deployed.
+- **Frontend-Only Architecture**: Validated as the superior approach for privacy and cost.
+
+### 🎯 Future Roadmap
 - Progressive Web App (PWA) support
+- Enhanced mobile gestures
+- Optional cloud backup (maybe)
 
 ---
 

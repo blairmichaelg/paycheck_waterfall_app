@@ -35,18 +35,13 @@ PayFlow uses standard JavaScript floating-point arithmetic, which is suitable fo
 - Standard consumer finance tracking
 
 **Not recommended for:**
-- Accounting systems requiring exact cent precision
 - High-frequency trading or scientific calculations
 - Legal/tax calculations with regulatory precision requirements
 
-For enterprise use cases requiring exact decimal precision, we recommend using the Python backend with `decimal.Decimal` support (roadmap item).
-
 ## Repository Layout
 
-- `webapp/` – Vite + React TypeScript single-page app containing the full MVP experience.
-- `docs/ARCHITECTURE.md` – deeper dive into goals, frontend structure, and future backend plans.
-- `src/paycheck_waterfall/` – reserved for the upcoming Python package (empty for now).
-- `tests/` – will house Python tests once the shared allocator lands.
+- `webapp/` – Vite + React TypeScript single-page app containing the full experience.
+- `docs/` – Architecture documentation and archives.
 - `.github/workflows/` – CI definitions for the webapp pipeline.
 
 ## Quick Start
@@ -64,15 +59,11 @@ cd webapp
 npm run test
 ```
 
-### Python Package (planned)
-The Python workspace is intentionally empty while the allocator is validated in TypeScript. When development begins, follow `CONTRIBUTING.md` to create a virtual environment and install the package in editable mode. Until then, there is no runnable Python artifact.
-
 ## Contribution Flow
 
 1. Read `docs/ARCHITECTURE.md` for context on goals and near-term roadmap.
-2. Follow the environment setup in `CONTRIBUTING.md` (Node.js + optional Python venv).
-3. For frontend work, ensure `npm run lint`, `npm run test`, and `npm run build` pass locally before opening a PR.
-4. Prefer keeping business logic isolated in `webapp/src/lib/` so it can be ported to Python later.
+2. Follow the environment setup in `CONTRIBUTING.md`.
+3. Ensure `npm run lint`, `npm run test`, and `npm run build` pass locally before opening a PR.
 
 ## 🚀 Deployment
 
@@ -91,7 +82,7 @@ See `.github/workflows/deploy-gh-pages.yml` for the full deployment pipeline.
 - ✅ Harden UI/UX, add schema validation, and automate CI
 - ✅ Publish the final web app (deployed on GitHub Pages)
 - ✅ Complete comprehensive code review improvements (transparency, simplicity, positivity)
-- 🔜 Extract allocation logic into a shared Python package + REST API backend
+- 🔜 Progressive Web App (PWA) support
 
 ## 💬 Feedback & Support
 

@@ -1,25 +1,32 @@
 # Contributing
 
-Developer setup (Windows PowerShell):
+## Developer Setup
+
+Prerequisites:
+- Node.js (v18+)
+- npm
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -e .
-python -m pip install -U pytest black flake8 pre-commit
-
 cd webapp
-npm install
+npm ci
+npm run dev
 ```
 
-Tests:
-- Python tests: `pytest -q` from repo root.
-- Webapp tests: `cd webapp && npm run test`.
+## Tests
 
-Coding conventions:
-- Python: `black` formatting, `flake8` linting.
-- Webapp: follow TypeScript strictness and use `vitest` for unit tests.
+Run the full test suite:
 
-Working with GitHub:
+```powershell
+cd webapp
+npm run test
+```
+
+## Coding Conventions
+
+- **TypeScript**: Strict mode is enabled. No `any`.
+- **Formatting**: Prettier is enforced. Run `npm run format`.
+- **Testing**: Vitest for unit tests, Playwright for E2E.
+
+## Working with GitHub
+
 - Use `gh` CLI to create PRs: `gh pr create`.
