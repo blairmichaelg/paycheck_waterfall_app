@@ -6,16 +6,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.1.0] - 2025-11-21
+
+### ✨ Added
+- **One-time bill frequency** - Track non-recurring expenses like car repairs or medical bills (always allocated in full)
+- **PWA support** - Service worker for offline functionality, installable on mobile devices
+- **Enhanced calculation breakdown** - Clearer waterfall visualization with emojis, counts, and subtotals
+- **Auto-range toast notifications** - Transparent feedback when paycheck range auto-adjusts
+- **Zero guilt-free encouragement** - Positive message when bills equal paycheck amount
+- **Improved mobile waterfall widths** - Better screen utilization on small devices (85-95% responsive widths)
+- **formatCadence helper** - User-friendly labels for bill frequencies (e.g., "One-time", "Biweekly")
+
+### 🧪 Testing
+- Added comprehensive tests for one_time bill cadence
+- **127+ tests** now passing (up from 125)
+- All tests cover allocation logic, UI components, and edge cases
+
+### 📚 Documentation
+- Updated README with new features organized into clear categories
+- Marked PWA support as completed in roadmap
+- Removed outdated contact information
+
+### 🎨 UX Improvements
+- Bills and goals now show item counts in breakdown (e.g., "Bills allocated (3)")
+- Visual hierarchy improved with better spacing and font sizes
+- Calculation flow more intuitive with step-by-step display
+
+---
+
 ## [1.0.0] - 2025-11-20
 
 ### 🎉 Official Release
-- **First Major Release**: Feature-complete, tested, and deployed.
-- **Frontend-Only Architecture**: Validated as the superior approach for privacy and cost.
-
-### 🎯 Future Roadmap
-- Progressive Web App (PWA) support
-- Enhanced mobile gestures
-- Optional cloud backup (maybe)
+- **First Major Release**: Feature-complete, tested, and deployed
+- **Frontend-Only Architecture**: Validated as the superior approach for privacy and cost
+- **Production-ready** with comprehensive testing and CI/CD
 
 ---
 
