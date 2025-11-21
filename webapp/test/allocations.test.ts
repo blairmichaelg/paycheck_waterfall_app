@@ -182,4 +182,25 @@ describe('allocatePaycheck', () => {
     expect(out.bills[2].name).toBe('Small')
     expect(out.bills[2].allocated).toBe(0) // Unfunded
   })
+
+  it('monthly bills require full amount when due within 30 days (not prorated)', () => {
+    // This matches user expectations: pay monthly bills in full, not prorated across biweekly paychecks
+    const testDate = new Date(2025, 10, 21) // Nov 21, 2025
+    const out = allocatePaycheck(
+      1924,
+      [
+        { name: 'Zombie Burger', amount: 100, cadence: 'monthly', dueDay: 1 }, // Due Dec 1 (10 days)
+        { name: 'Court Fees', amount: 136, cadence: 'monthly', dueDay: 1 },
+      ],
+      [],
+      { payFrequency: 'biweekly', upcomingDays: 14, currentDate: testDate }
+    )
+    
+    // Should require FULL amount for monthly bills due within 30 days
+    const zombieBurger = out.bills.find((b) => b.name === 'Zombie Burger')
+    const courtFees = out.bills.find((b) => b.name === 'Court Fees')
+    
+    expect(zombieBurger?.required).toBe(100) // Full amount, not prorated
+    expect(courtFees?.required).toBe(136) // Full amount, not prorated
+  })
 })

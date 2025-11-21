@@ -398,17 +398,33 @@ export default function Dashboard({
               transition: 'all 0.3s ease',
             }}
           >
-            <h2
-              style={{
-                marginTop: 0,
-                fontSize: 18,
-                fontWeight: 700,
-                color: colors.textPrimary,
-                marginBottom: 16,
-              }}
-            >
-              📋 Bills Funded This Paycheck
-            </h2>
+            <div style={{ marginBottom: 16 }}>
+              <h2
+                style={{
+                  marginTop: 0,
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: colors.textPrimary,
+                  marginBottom: 8,
+                }}
+              >
+                📋 Bills Funded This Paycheck
+              </h2>
+              <div
+                style={{
+                  fontSize: 13,
+                  color: colors.textSecondary,
+                  lineHeight: 1.5,
+                  padding: '8px 12px',
+                  background: colors.successBg,
+                  borderRadius: 8,
+                  border: `1px solid ${colors.border}`,
+                }}
+              >
+                💡 <strong style={{ color: colors.textPrimary }}>Monthly bills</strong> show the full amount when due this month.{' '}
+                <strong style={{ color: colors.textPrimary }}>Biweekly/weekly bills</strong> show the amount for this paycheck.
+              </div>
+            </div>
             {lastResult.bills.length === 0 ? (
               <div style={{ color: colors.textMuted }}>No bills configured.</div>
             ) : isMobile ? (
@@ -479,7 +495,7 @@ export default function Dashboard({
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
                       <div>
                         <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 2 }}>
-                          Need
+                          Bill Amount
                         </div>
                         <div style={{ fontSize: 15, fontWeight: 600, color: colors.textPrimary }}>
                           {formatCurrency(bill.required)}
@@ -487,7 +503,7 @@ export default function Dashboard({
                       </div>
                       <div>
                         <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 2 }}>
-                          Funded
+                          You're Saving
                         </div>
                         <div style={{ fontSize: 15, fontWeight: 600, color: colors.success }}>
                           {formatCurrency(bill.allocated)}
@@ -495,7 +511,7 @@ export default function Dashboard({
                       </div>
                       <div>
                         <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 2 }}>
-                          For next time
+                          Still Need
                         </div>
                         <div
                           style={{
@@ -504,7 +520,7 @@ export default function Dashboard({
                             color: bill.remaining > 0 ? colors.textSecondary : colors.success,
                           }}
                         >
-                          {bill.remaining > 0 ? formatCurrency(bill.remaining) : '✓ Complete'}
+                          {bill.remaining > 0 ? formatCurrency(bill.remaining) : '✓ Ready!'}
                         </div>
                       </div>
                     </div>
@@ -520,13 +536,13 @@ export default function Dashboard({
                       Name
                     </th>
                     <th style={{ padding: '8px 4px', color: colors.textSecondary, fontSize: 13 }}>
-                      Need
+                      Bill Amount
                     </th>
                     <th style={{ padding: '8px 4px', color: colors.textSecondary, fontSize: 13 }}>
-                      Allocated
+                      You're Saving
                     </th>
                     <th style={{ padding: '8px 4px', color: colors.textSecondary, fontSize: 13 }}>
-                      For next time
+                      Still Need
                     </th>
                   </tr>
                 </thead>
@@ -609,7 +625,7 @@ export default function Dashboard({
                           fontSize: 14,
                         }}
                       >
-                        {bill.remaining > 0 ? formatCurrency(bill.remaining) : '✓'}
+                        {bill.remaining > 0 ? formatCurrency(bill.remaining) : '✓ Ready!'}
                       </td>
                       </tr>
                     );
@@ -785,17 +801,19 @@ export default function Dashboard({
                 }}
               >
                 <li>
-                  <strong>Bills due before next paycheck</strong> were funded first (reduces
-                  stress!)
+                  <strong>Monthly bills</strong> are funded for the full amount when due this month
                 </li>
                 <li>
-                  <strong>Extra money</strong> went to complete partial bills when possible
+                  <strong>Bills due soonest</strong> get funded first (reduces stress!)
                 </li>
                 <li>
-                  <strong>Goals</strong> received{' '}
+                  <strong>Extra money</strong> goes to complete partial bills when possible
+                </li>
+                <li>
+                  <strong>Goals</strong> receive{' '}
                   {percentApply === 'gross'
                     ? 'a percentage of your gross pay'
-                    : 'what remained after bills'}
+                    : 'what remains after bills'}
                 </li>
                 <li>
                   <strong>Everything left</strong> is yours to spend guilt-free! 💚

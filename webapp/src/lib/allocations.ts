@@ -113,8 +113,12 @@ function getDaysPerPaycheck(payFrequency?: (typeof PAY_FREQUENCIES)[number]): nu
 
 /**
  * Calculate how much of a bill is needed based on when it's due.
- * If due date is specified and within the window, returns full amount.
- * Otherwise prorates based on time until next paycheck.
+ * 
+ * LOGIC:
+ * 1. If bill is due within the paycheck window → full amount
+ * 2. For monthly bills: if due within ~30 days → full amount (user expects to pay monthly bills in full)
+ * 3. For 'every_paycheck': full amount
+ * 4. Otherwise: prorate based on time until next paycheck
  */
 const calculateBillPortionNeeded = (
   amount: number,
@@ -131,6 +135,12 @@ const calculateBillPortionNeeded = (
   // For 'every_paycheck', use actual pay frequency
   if (cadence === 'every_paycheck') {
     return amount; // Full amount needed every paycheck
+  }
+
+  // For monthly bills: if due within ~30 days, require full amount (not prorated)
+  // This matches user expectations - you pay monthly bills in full once per month
+  if (cadence === 'monthly' && daysUntilDue !== undefined && daysUntilDue <= 30) {
+    return amount;
   }
 
   // Otherwise use time-based estimation
