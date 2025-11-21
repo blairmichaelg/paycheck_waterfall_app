@@ -20,7 +20,7 @@ import {
 } from './lib/storage';
 import { loadTheme, saveTheme, getThemeColors, type Theme } from './lib/theme';
 import { trackSession, trackEvent } from './lib/analytics';
-import { formatCurrency, formatTimeAgo } from './lib/formatters';
+import { formatTimeAgo } from './lib/formatters';
 import type { AllocationResult } from './lib/allocations';
 import type { UserConfig } from './lib/types';
 import { getErrorMessage } from './lib/errorMessages';
@@ -107,7 +107,6 @@ export default function App() {
   };
 
   const handleRangeUpdate = async (newMin: number, newMax: number) => {
-    const currentRange = config.settings.paycheckRange;
     const updatedConfig = {
       ...config,
       settings: {

@@ -543,7 +543,7 @@ export default function Dashboard({
                       </div>
                       <div>
                         <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 2 }}>
-                          You're Saving
+                          You&apos;re Saving
                         </div>
                         <div style={{ fontSize: 15, fontWeight: 600, color: colors.success }}>
                           {formatCurrency(bill.allocated)}
@@ -579,7 +579,7 @@ export default function Dashboard({
                       Bill Amount
                     </th>
                     <th style={{ padding: '8px 4px', color: colors.textSecondary, fontSize: 13 }}>
-                      You're Saving
+                      You&apos;re Saving
                     </th>
                     <th style={{ padding: '8px 4px', color: colors.textSecondary, fontSize: 13 }}>
                       Still Need
