@@ -161,7 +161,7 @@ export function clearConfig(options?: { keepBackup?: boolean }) {
   try {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(ALLOCATION_KEY); // Also clear last allocation
-    
+
     // Optionally clear backup
     if (!options?.keepBackup) {
       localStorage.removeItem(BACKUP_KEY);

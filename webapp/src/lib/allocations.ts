@@ -84,7 +84,10 @@ function _round2(x: number): number {
 /**
  * Average days per cadence. For 'every_paycheck' and 'one_time', handle separately.
  */
-const daysPerCadence: Record<Exclude<(typeof BILL_CADENCES)[number], 'every_paycheck' | 'one_time'>, number> = {
+const daysPerCadence: Record<
+  Exclude<(typeof BILL_CADENCES)[number], 'every_paycheck' | 'one_time'>,
+  number
+> = {
   weekly: 7,
   biweekly: 14,
   semi_monthly: 15,
@@ -113,7 +116,7 @@ function getDaysPerPaycheck(payFrequency?: (typeof PAY_FREQUENCIES)[number]): nu
 
 /**
  * Calculate how much of a bill is needed based on when it's due.
- * 
+ *
  * LOGIC:
  * 1. One-time bills: full amount (pay it once and done)
  * 2. If bill is due within the paycheck window → full amount

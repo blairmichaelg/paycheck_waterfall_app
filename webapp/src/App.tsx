@@ -76,9 +76,13 @@ export default function App() {
   // Config loaded on mount via useState initializer, no need for redundant useEffect
 
   // Persist allocation result whenever it changes (debounced for performance)
-  useDebouncedEffect(() => {
-    saveAllocation(lastAllocation);
-  }, [lastAllocation], 500);
+  useDebouncedEffect(
+    () => {
+      saveAllocation(lastAllocation);
+    },
+    [lastAllocation],
+    500
+  );
 
   useEffect(() => {
     // Track session on app load (privacy-friendly, local only)
@@ -278,7 +282,8 @@ export default function App() {
                   Backup Available
                 </div>
                 <div style={{ color: colors.textSecondary, fontSize: 13 }}>
-                  Saved {backupInfo.timestamp ? formatTimeAgo(backupInfo.timestamp) : 'recently'} • Available for 24 hours
+                  Saved {backupInfo.timestamp ? formatTimeAgo(backupInfo.timestamp) : 'recently'} •
+                  Available for 24 hours
                 </div>
               </div>
             </div>
@@ -365,11 +370,7 @@ export default function App() {
               />
             ) : activeView === 'breakdown' ? (
               lastAllocation ? (
-                <Breakdown
-                  allocation={lastAllocation}
-                  config={config}
-                  theme={theme}
-                />
+                <Breakdown allocation={lastAllocation} config={config} theme={theme} />
               ) : (
                 <div style={{ padding: isMobile ? 24 : 48, textAlign: 'center' }}>
                   <div style={{ fontSize: 48, marginBottom: 16 }}>🌊</div>
@@ -495,41 +496,212 @@ export default function App() {
             )}
           </div>
           {!isMobile && (
-          <aside aria-label="Sidebar">
-            {activeView === 'plan' ? (
-              // Full sidebar for settings view
-              <>
-                <div
-                  style={{
-                    background: colors.statusGradient,
-                    padding: 20,
-                    borderRadius: 16,
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                    color: '#fff',
-                  }}
-                >
-                  <h4
+            <aside aria-label="Sidebar">
+              {activeView === 'plan' ? (
+                // Full sidebar for settings view
+                <>
+                  <div
                     style={{
-                      marginTop: 0,
-                      fontSize: 14,
-                      fontWeight: 600,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      opacity: 0.9,
+                      background: colors.statusGradient,
+                      padding: 20,
+                      borderRadius: 16,
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                      color: '#fff',
                     }}
                   >
-                    Status
-                  </h4>
-                  <div aria-live="polite" style={{ fontSize: 16, fontWeight: 500 }}>
-                    {toastState.show && toastState.variant === 'success' ? '✓ Saved' : 'No changes'}
+                    <h4
+                      style={{
+                        marginTop: 0,
+                        fontSize: 14,
+                        fontWeight: 600,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        opacity: 0.9,
+                      }}
+                    >
+                      Status
+                    </h4>
+                    <div aria-live="polite" style={{ fontSize: 16, fontWeight: 500 }}>
+                      {toastState.show && toastState.variant === 'success'
+                        ? '✓ Saved'
+                        : 'No changes'}
+                    </div>
                   </div>
-                </div>
 
+                  <div
+                    style={{
+                      marginTop: 16,
+                      background: colors.cardBg,
+                      padding: 20,
+                      borderRadius: 16,
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                      border: `1px solid ${colors.border}`,
+                      transition: 'all 0.3s ease',
+                    }}
+                  >
+                    <h4
+                      style={{
+                        marginTop: 0,
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: colors.textPrimary,
+                        marginBottom: 16,
+                      }}
+                    >
+                      Data Management
+                    </h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <button
+                        onClick={() => {
+                          const data = exportConfig();
+                          const blob = new Blob([data], { type: 'application/json' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `payflow_config_${
+                            new Date().toISOString().split('T')[0]
+                          }.json`;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                          trackEvent('configExports');
+                        }}
+                        aria-label="Export configuration as JSON file"
+                        style={{
+                          padding: '10px 16px',
+                          background: colors.surfaceBg,
+                          border: 'none',
+                          borderRadius: 10,
+                          cursor: 'pointer',
+                          fontSize: 14,
+                          fontWeight: 500,
+                          color: colors.textPrimary,
+                          transition: 'all 0.2s ease',
+                          minHeight: 44,
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = colors.border;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = colors.surfaceBg;
+                        }}
+                      >
+                        Export Config
+                      </button>
+
+                      <label style={{ display: 'block', cursor: 'pointer' }}>
+                        <input
+                          type="file"
+                          accept="application/json"
+                          aria-label="Import configuration from JSON file"
+                          style={{ display: 'none' }}
+                          onChange={async (e) => {
+                            const f = e.target.files && e.target.files[0];
+                            if (!f) return;
+                            const text = await f.text();
+                            setConfirmModal({ isOpen: true, action: 'import', importData: text });
+                            e.target.value = ''; // Reset file input
+                          }}
+                        />
+                        <div
+                          style={{
+                            padding: '10px 16px',
+                            background: colors.surfaceBg,
+                            border: 'none',
+                            borderRadius: 10,
+                            fontSize: 14,
+                            fontWeight: 500,
+                            color: colors.textPrimary,
+                            transition: 'all 0.2s ease',
+                            minHeight: 44,
+                            textAlign: 'center',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = colors.border;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = colors.surfaceBg;
+                          }}
+                        >
+                          Import Config
+                        </div>
+                      </label>
+
+                      {backupInfo.exists && (
+                        <button
+                          onClick={() => {
+                            const restored = restoreConfigFromBackup();
+                            if (restored) {
+                              const loadResult = loadConfig();
+                              setConfig(loadResult.config);
+                              setLastSavedAt(Date.now());
+                              setBackupInfo({ exists: false });
+                              showToast('✨ Configuration restored successfully!', 'success');
+                            } else {
+                              const errorMsg = getErrorMessage('LOAD_FAILED');
+                              showToast(`${errorMsg.icon} ${errorMsg.message}`, 'error');
+                            }
+                          }}
+                          aria-label="Restore last configuration"
+                          style={{
+                            padding: '10px 16px',
+                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                            border: 'none',
+                            borderRadius: 10,
+                            cursor: 'pointer',
+                            fontSize: 14,
+                            fontWeight: 500,
+                            color: '#fff',
+                            transition: 'all 0.2s ease',
+                            minHeight: 44,
+                            boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-1px)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(16, 185, 129, 0.3)';
+                          }}
+                        >
+                          ↺ Restore Last Config
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => setConfirmModal({ isOpen: true, action: 'clear' })}
+                        aria-label="Start fresh with new configuration"
+                        style={{
+                          padding: '10px 16px',
+                          background: colors.surfaceBg,
+                          border: `1px dashed ${colors.border}`,
+                          borderRadius: 10,
+                          cursor: 'pointer',
+                          fontSize: 14,
+                          fontWeight: 500,
+                          color: colors.textSecondary,
+                          transition: 'all 0.2s ease',
+                          minHeight: 44,
+                          marginTop: 6,
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = colors.border;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = colors.surfaceBg;
+                        }}
+                      >
+                        🔄 Start Fresh
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                // Compact sidebar for other views
                 <div
                   style={{
-                    marginTop: 16,
                     background: colors.cardBg,
-                    padding: 20,
+                    padding: 16,
                     borderRadius: 16,
                     boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                     border: `1px solid ${colors.border}`,
@@ -539,15 +711,17 @@ export default function App() {
                   <h4
                     style={{
                       marginTop: 0,
-                      fontSize: 14,
+                      fontSize: 12,
                       fontWeight: 600,
-                      color: colors.textPrimary,
-                      marginBottom: 16,
+                      color: colors.textMuted,
+                      marginBottom: 12,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
                     }}
                   >
-                    Data Management
+                    Quick Actions
                   </h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <button
                       onClick={() => {
                         const data = exportConfig();
@@ -562,124 +736,19 @@ export default function App() {
                         URL.revokeObjectURL(url);
                         trackEvent('configExports');
                       }}
-                      aria-label="Export configuration as JSON file"
+                      aria-label="Export configuration"
                       style={{
-                        padding: '10px 16px',
+                        padding: '8px 12px',
                         background: colors.surfaceBg,
                         border: 'none',
-                        borderRadius: 10,
+                        borderRadius: 8,
                         cursor: 'pointer',
-                        fontSize: 14,
-                        fontWeight: 500,
-                        color: colors.textPrimary,
-                        transition: 'all 0.2s ease',
-                        minHeight: 44,
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = colors.border;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = colors.surfaceBg;
-                      }}
-                    >
-                      Export Config
-                    </button>
-
-                    <label style={{ display: 'block', cursor: 'pointer' }}>
-                      <input
-                        type="file"
-                        accept="application/json"
-                        aria-label="Import configuration from JSON file"
-                        style={{ display: 'none' }}
-                        onChange={async (e) => {
-                          const f = e.target.files && e.target.files[0];
-                          if (!f) return;
-                          const text = await f.text();
-                          setConfirmModal({ isOpen: true, action: 'import', importData: text });
-                          e.target.value = ''; // Reset file input
-                        }}
-                      />
-                      <div
-                        style={{
-                          padding: '10px 16px',
-                          background: colors.surfaceBg,
-                          border: 'none',
-                          borderRadius: 10,
-                          fontSize: 14,
-                          fontWeight: 500,
-                          color: colors.textPrimary,
-                          transition: 'all 0.2s ease',
-                          minHeight: 44,
-                          textAlign: 'center',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = colors.border;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = colors.surfaceBg;
-                        }}
-                      >
-                        Import Config
-                      </div>
-                    </label>
-
-                    {backupInfo.exists && (
-                      <button
-                        onClick={() => {
-                          const restored = restoreConfigFromBackup();
-                          if (restored) {
-                            const loadResult = loadConfig();
-                            setConfig(loadResult.config);
-                            setLastSavedAt(Date.now());
-                            setBackupInfo({ exists: false });
-                            showToast('✨ Configuration restored successfully!', 'success');
-                          } else {
-                            const errorMsg = getErrorMessage('LOAD_FAILED');
-                            showToast(`${errorMsg.icon} ${errorMsg.message}`, 'error');
-                          }
-                        }}
-                        aria-label="Restore last configuration"
-                        style={{
-                          padding: '10px 16px',
-                          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                          border: 'none',
-                          borderRadius: 10,
-                          cursor: 'pointer',
-                          fontSize: 14,
-                          fontWeight: 500,
-                          color: '#fff',
-                          transition: 'all 0.2s ease',
-                          minHeight: 44,
-                          boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'translateY(-1px)';
-                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.boxShadow = '0 2px 8px rgba(16, 185, 129, 0.3)';
-                        }}
-                      >
-                        ↺ Restore Last Config
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => setConfirmModal({ isOpen: true, action: 'clear' })}
-                      aria-label="Start fresh with new configuration"
-                      style={{
-                        padding: '10px 16px',
-                        background: colors.surfaceBg,
-                        border: `1px dashed ${colors.border}`,
-                        borderRadius: 10,
-                        cursor: 'pointer',
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight: 500,
                         color: colors.textSecondary,
                         transition: 'all 0.2s ease',
-                        minHeight: 44,
-                        marginTop: 6,
+                        minHeight: 36,
+                        textAlign: 'left',
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.background = colors.border;
@@ -688,100 +757,36 @@ export default function App() {
                         e.currentTarget.style.background = colors.surfaceBg;
                       }}
                     >
-                      🔄 Start Fresh
+                      Export
+                    </button>
+                    <button
+                      onClick={() => setActiveView('plan')}
+                      style={{
+                        padding: '8px 12px',
+                        background: colors.surfaceBg,
+                        border: 'none',
+                        borderRadius: 8,
+                        cursor: 'pointer',
+                        fontSize: 13,
+                        fontWeight: 500,
+                        color: colors.textSecondary,
+                        transition: 'all 0.2s ease',
+                        minHeight: 36,
+                        textAlign: 'left',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = colors.border;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = colors.surfaceBg;
+                      }}
+                    >
+                      Settings
                     </button>
                   </div>
                 </div>
-              </>
-            ) : (
-              // Compact sidebar for other views
-              <div
-                style={{
-                  background: colors.cardBg,
-                  padding: 16,
-                  borderRadius: 16,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                  border: `1px solid ${colors.border}`,
-                  transition: 'all 0.3s ease',
-                }}
-              >
-                <h4
-                  style={{
-                    marginTop: 0,
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: colors.textMuted,
-                    marginBottom: 12,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                  }}
-                >
-                  Quick Actions
-                </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <button
-                    onClick={() => {
-                      const data = exportConfig();
-                      const blob = new Blob([data], { type: 'application/json' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `payflow_config_${new Date().toISOString().split('T')[0]}.json`;
-                      a.click();
-                      URL.revokeObjectURL(url);
-                      trackEvent('configExports');
-                    }}
-                    aria-label="Export configuration"
-                    style={{
-                      padding: '8px 12px',
-                      background: colors.surfaceBg,
-                      border: 'none',
-                      borderRadius: 8,
-                      cursor: 'pointer',
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: colors.textSecondary,
-                      transition: 'all 0.2s ease',
-                      minHeight: 36,
-                      textAlign: 'left',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = colors.border;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = colors.surfaceBg;
-                    }}
-                  >
-                    Export
-                  </button>
-                  <button
-                    onClick={() => setActiveView('plan')}
-                    style={{
-                      padding: '8px 12px',
-                      background: colors.surfaceBg,
-                      border: 'none',
-                      borderRadius: 8,
-                      cursor: 'pointer',
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: colors.textSecondary,
-                      transition: 'all 0.2s ease',
-                      minHeight: 36,
-                      textAlign: 'left',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = colors.border;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = colors.surfaceBg;
-                    }}
-                  >
-                    Settings
-                  </button>
-                </div>
-              </div>
-            )}
-          </aside>
+              )}
+            </aside>
           )}
         </div>
         {toastState.show ? (
@@ -813,7 +818,10 @@ export default function App() {
                 setLastAllocation(null); // Clear allocation result too
                 setLastSavedAt(Date.now());
                 setBackupInfo({ exists: true, timestamp: Date.now() });
-                showToast('✨ Fresh start! Your old settings are backed up for 24 hours.', 'success');
+                showToast(
+                  '✨ Fresh start! Your old settings are backed up for 24 hours.',
+                  'success'
+                );
               } catch (err) {
                 showToast('Failed to clear configuration', 'error');
                 console.error('Clear failed:', err);

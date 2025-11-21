@@ -7,8 +7,8 @@ import { BREAKPOINTS } from './constants';
  * Includes resize listener for responsive updates.
  */
 export function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' && window.innerWidth <= BREAKPOINTS.mobile
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth <= BREAKPOINTS.mobile
   );
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export function useIsMobile(): boolean {
 /**
  * Hook to debounce effect execution.
  * Useful for expensive operations like localStorage writes.
- * 
+ *
  * @param effect - The effect function to debounce
  * @param deps - Dependencies array
  * @param delay - Debounce delay in milliseconds (default: 300ms)

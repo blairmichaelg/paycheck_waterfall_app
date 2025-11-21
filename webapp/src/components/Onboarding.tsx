@@ -25,7 +25,15 @@ type OnboardingProps = {
   onClear?: () => void;
 };
 
-export default function Onboarding({ initial, onSave, lastSavedAt, theme, onExport, onImport, onClear }: OnboardingProps) {
+export default function Onboarding({
+  initial,
+  onSave,
+  lastSavedAt,
+  theme,
+  onExport,
+  onImport,
+  onClear,
+}: OnboardingProps) {
   const colors = getThemeColors(theme);
   const isMobile = useIsMobile();
   const [bills, setBills] = useState<Bill[]>(() => initial.bills.map((b) => ({ ...b })));
@@ -274,8 +282,8 @@ export default function Onboarding({ initial, onSave, lastSavedAt, theme, onExpo
                   🎉 Great start! Add a bill or two
                 </div>
                 <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6 }}>
-                  Just the basics—we&apos;ll show you exactly how much you can spend guilt-free!
-                  You can always edit or remove bills later.
+                  Just the basics—we&apos;ll show you exactly how much you can spend guilt-free! You
+                  can always edit or remove bills later.
                 </div>
               </div>
             )}

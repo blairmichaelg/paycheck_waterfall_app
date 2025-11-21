@@ -65,7 +65,12 @@ export default function Dashboard({
       onRangeUpdate(newMin, newMax);
       // Show transparent feedback about range adjustment
       if (onToast) {
-        onToast(`✨ Paycheck range auto-adjusted to ${formatCurrency(newMin)} - ${formatCurrency(newMax)}`, 'info');
+        onToast(
+          `✨ Paycheck range auto-adjusted to ${formatCurrency(newMin)} - ${formatCurrency(
+            newMax
+          )}`,
+          'info'
+        );
       }
     }
 
@@ -90,7 +95,7 @@ export default function Dashboard({
         setLastResult(res);
         onResult?.(res);
         trackEvent('paycheckCalculations');
-        
+
         // Move focus to result for screen readers
         setTimeout(() => {
           resultRef.current?.focus();
@@ -299,7 +304,7 @@ export default function Dashboard({
             >
               {formatCurrency(lastResult.guilt_free)}
             </div>
-            
+
             {/* Positive message when guilt-free is zero */}
             {lastResult.guilt_free === 0 && (
               <div
@@ -317,7 +322,7 @@ export default function Dashboard({
                 💪 Hang in there! Your bills are covered—that&apos;s what matters.
               </div>
             )}
-            
+
             {/* Calculation breakdown - Always visible for transparency */}
             <div
               style={{
@@ -329,51 +334,105 @@ export default function Dashboard({
                 lineHeight: 1.8,
               }}
             >
-              <div style={{ fontSize: 11, opacity: 0.85, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  opacity: 0.85,
+                  marginBottom: 10,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  fontWeight: 600,
+                }}
+              >
                 💡 How we calculated this
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 4,
+                }}
+              >
                 <span style={{ opacity: 0.9 }}>💵 Your paycheck</span>
                 <strong style={{ fontSize: 14 }}>{formatCurrency(lastResult.meta.paycheck)}</strong>
               </div>
               {lastResult.meta.supplemental_income > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 4,
+                  }}
+                >
                   <span style={{ opacity: 0.9 }}>💰 + Bonus income</span>
-                  <strong style={{ fontSize: 14 }}>+{formatCurrency(lastResult.meta.supplemental_income)}</strong>
+                  <strong style={{ fontSize: 14 }}>
+                    +{formatCurrency(lastResult.meta.supplemental_income)}
+                  </strong>
                 </div>
               )}
               {lastResult.meta.supplemental_income > 0 && (
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  paddingTop: 6,
-                  marginBottom: 8,
-                  borderTop: '1px dashed rgba(255,255,255,0.2)',
-                  fontSize: 12,
-                  opacity: 0.85,
-                }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    paddingTop: 6,
+                    marginBottom: 8,
+                    borderTop: '1px dashed rgba(255,255,255,0.2)',
+                    fontSize: 12,
+                    opacity: 0.85,
+                  }}
+                >
                   <span>Total available:</span>
-                  <strong>{formatCurrency(lastResult.meta.paycheck + lastResult.meta.supplemental_income)}</strong>
+                  <strong>
+                    {formatCurrency(lastResult.meta.paycheck + lastResult.meta.supplemental_income)}
+                  </strong>
                 </div>
               )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4, marginTop: lastResult.meta.supplemental_income > 0 ? 0 : 8 }}>
-                <span style={{ opacity: 0.9 }}>🏠 − Bills allocated ({lastResult.bills.length})</span>
-                <strong style={{ fontSize: 14, color: 'rgba(255,180,180,1)' }}>−{formatCurrency(lastResult.bills.reduce((sum, b) => sum + b.allocated, 0))}</strong>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 4,
+                  marginTop: lastResult.meta.supplemental_income > 0 ? 0 : 8,
+                }}
+              >
+                <span style={{ opacity: 0.9 }}>
+                  🏠 − Bills allocated ({lastResult.bills.length})
+                </span>
+                <strong style={{ fontSize: 14, color: 'rgba(255,180,180,1)' }}>
+                  −{formatCurrency(lastResult.bills.reduce((sum, b) => sum + b.allocated, 0))}
+                </strong>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                <span style={{ opacity: 0.9 }}>🎯 − Goals allocated ({lastResult.goals.length})</span>
-                <strong style={{ fontSize: 14, color: 'rgba(255,180,180,1)' }}>−{formatCurrency(lastResult.goals.reduce((sum, g) => sum + g.allocated, 0))}</strong>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 4,
+                }}
+              >
+                <span style={{ opacity: 0.9 }}>
+                  🎯 − Goals allocated ({lastResult.goals.length})
+                </span>
+                <strong style={{ fontSize: 14, color: 'rgba(255,180,180,1)' }}>
+                  −{formatCurrency(lastResult.goals.reduce((sum, g) => sum + g.allocated, 0))}
+                </strong>
               </div>
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginTop: 12, 
-                paddingTop: 12,
-                borderTop: '2px solid rgba(255,255,255,0.4)',
-                fontWeight: 700,
-                fontSize: 15,
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginTop: 12,
+                  paddingTop: 12,
+                  borderTop: '2px solid rgba(255,255,255,0.4)',
+                  fontWeight: 700,
+                  fontSize: 15,
+                }}
+              >
                 <span>💚 Your guilt-free spending</span>
                 <strong style={{ fontSize: 16 }}>{formatCurrency(lastResult.guilt_free)}</strong>
               </div>
@@ -398,7 +457,9 @@ export default function Dashboard({
                   }}
                 >
                   <div style={{ fontSize: isMobile ? 20 : 24, marginBottom: 8 }}>🎉✨🎉</div>
-                  <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: colors.success }}>
+                  <div
+                    style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: colors.success }}
+                  >
                     All {totalBills} {totalBills === 1 ? 'bill' : 'bills'} fully funded!
                   </div>
                   <div style={{ fontSize: 14, color: colors.textPrimary, marginTop: 4 }}>
@@ -426,7 +487,6 @@ export default function Dashboard({
             }
             return null;
           })()}
-
 
           <section
             style={{
@@ -461,8 +521,10 @@ export default function Dashboard({
                   border: `1px solid ${colors.border}`,
                 }}
               >
-                💡 <strong style={{ color: colors.textPrimary }}>Monthly bills</strong> show the full amount when due this month.{' '}
-                <strong style={{ color: colors.textPrimary }}>Biweekly/weekly bills</strong> show the amount for this paycheck.
+                💡 <strong style={{ color: colors.textPrimary }}>Monthly bills</strong> show the
+                full amount when due this month.{' '}
+                <strong style={{ color: colors.textPrimary }}>Biweekly/weekly bills</strong> show
+                the amount for this paycheck.
               </div>
             </div>
             {lastResult.bills.length === 0 ? (
@@ -489,7 +551,12 @@ export default function Dashboard({
                         }}
                       >
                         <div
-                          style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            flexWrap: 'wrap',
+                          }}
                         >
                           <span
                             style={{
@@ -500,71 +567,71 @@ export default function Dashboard({
                           >
                             {bill.name || 'Bill'}
                           </span>
-                        {bill.isUrgent && bill.daysUntilDue !== undefined && (
-                          <span
+                          {bill.isUrgent && bill.daysUntilDue !== undefined && (
+                            <span
+                              style={{
+                                background: '#fef3c7',
+                                color: '#92400e',
+                                padding: '2px 8px',
+                                borderRadius: 6,
+                                fontSize: 11,
+                                fontWeight: 600,
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              📌 Priority ({bill.daysUntilDue}d)
+                            </span>
+                          )}
+                          {!bill.isUrgent && bill.daysUntilDue !== undefined && (
+                            <span
+                              style={{
+                                background: colors.border,
+                                color: colors.textMuted,
+                                padding: '2px 8px',
+                                borderRadius: 6,
+                                fontSize: 11,
+                                fontWeight: 500,
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {bill.daysUntilDue}d
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                        <div>
+                          <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 2 }}>
+                            Bill Amount
+                          </div>
+                          <div style={{ fontSize: 15, fontWeight: 600, color: colors.textPrimary }}>
+                            {formatCurrency(bill.required)}
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 2 }}>
+                            You&apos;re Saving
+                          </div>
+                          <div style={{ fontSize: 15, fontWeight: 600, color: colors.success }}>
+                            {formatCurrency(bill.allocated)}
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 2 }}>
+                            Still Need
+                          </div>
+                          <div
                             style={{
-                              background: '#fef3c7',
-                              color: '#92400e',
-                              padding: '2px 8px',
-                              borderRadius: 6,
-                              fontSize: 11,
+                              fontSize: 15,
                               fontWeight: 600,
-                              whiteSpace: 'nowrap',
+                              color: bill.remaining > 0 ? colors.textSecondary : colors.success,
                             }}
                           >
-                            📌 Priority ({bill.daysUntilDue}d)
-                          </span>
-                        )}
-                        {!bill.isUrgent && bill.daysUntilDue !== undefined && (
-                          <span
-                            style={{
-                              background: colors.border,
-                              color: colors.textMuted,
-                              padding: '2px 8px',
-                              borderRadius: 6,
-                              fontSize: 11,
-                              fontWeight: 500,
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {bill.daysUntilDue}d
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                      <div>
-                        <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 2 }}>
-                          Bill Amount
-                        </div>
-                        <div style={{ fontSize: 15, fontWeight: 600, color: colors.textPrimary }}>
-                          {formatCurrency(bill.required)}
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 2 }}>
-                          You&apos;re Saving
-                        </div>
-                        <div style={{ fontSize: 15, fontWeight: 600, color: colors.success }}>
-                          {formatCurrency(bill.allocated)}
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 2 }}>
-                          Still Need
-                        </div>
-                        <div
-                          style={{
-                            fontSize: 15,
-                            fontWeight: 600,
-                            color: bill.remaining > 0 ? colors.textSecondary : colors.success,
-                          }}
-                        >
-                          {bill.remaining > 0 ? formatCurrency(bill.remaining) : '✓ Ready!'}
+                            {bill.remaining > 0 ? formatCurrency(bill.remaining) : '✓ Ready!'}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
                   );
                 })}
               </div>
@@ -572,7 +639,14 @@ export default function Dashboard({
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ textAlign: 'left', borderBottom: `2px solid ${colors.border}` }}>
-                    <th style={{ textAlign: 'left', padding: '8px 4px', color: colors.textSecondary, fontSize: 13 }}>
+                    <th
+                      style={{
+                        textAlign: 'left',
+                        padding: '8px 4px',
+                        color: colors.textSecondary,
+                        fontSize: 13,
+                      }}
+                    >
                       Name
                     </th>
                     <th style={{ padding: '8px 4px', color: colors.textSecondary, fontSize: 13 }}>
@@ -613,60 +687,62 @@ export default function Dashboard({
                             >
                               {bill.name || 'Bill'}
                             </span>
-                          {bill.isUrgent && bill.daysUntilDue !== undefined && (
-                            <span
-                              style={{
-                                background: '#fef3c7',
-                                color: '#92400e',
-                                padding: '2px 6px',
-                                borderRadius: 6,
-                                fontSize: 10,
-                                fontWeight: 600,
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
-                              📌 Priority ({bill.daysUntilDue}d)
-                            </span>
-                          )}
-                          {!bill.isUrgent && bill.daysUntilDue !== undefined && (
-                            <span
-                              style={{
-                                background: colors.surfaceBg,
-                                color: colors.textMuted,
-                                padding: '2px 6px',
-                                borderRadius: 6,
-                                fontSize: 10,
-                                fontWeight: 500,
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
-                              {bill.daysUntilDue}d
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td style={{ padding: '12px 4px', color: colors.textPrimary, fontSize: 14 }}>
-                        {formatCurrency(bill.required)}
-                      </td>
-                      <td
-                        style={{
-                          padding: '12px 4px',
-                          color: colors.success,
-                          fontWeight: 600,
-                          fontSize: 14,
-                        }}
-                      >
-                        {formatCurrency(bill.allocated)}
-                      </td>
-                      <td
-                        style={{
-                          padding: '12px 4px',
-                          color: bill.remaining > 0 ? colors.textSecondary : colors.success,
-                          fontSize: 14,
-                        }}
-                      >
-                        {bill.remaining > 0 ? formatCurrency(bill.remaining) : '✓ Ready!'}
-                      </td>
+                            {bill.isUrgent && bill.daysUntilDue !== undefined && (
+                              <span
+                                style={{
+                                  background: '#fef3c7',
+                                  color: '#92400e',
+                                  padding: '2px 6px',
+                                  borderRadius: 6,
+                                  fontSize: 10,
+                                  fontWeight: 600,
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                📌 Priority ({bill.daysUntilDue}d)
+                              </span>
+                            )}
+                            {!bill.isUrgent && bill.daysUntilDue !== undefined && (
+                              <span
+                                style={{
+                                  background: colors.surfaceBg,
+                                  color: colors.textMuted,
+                                  padding: '2px 6px',
+                                  borderRadius: 6,
+                                  fontSize: 10,
+                                  fontWeight: 500,
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {bill.daysUntilDue}d
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td
+                          style={{ padding: '12px 4px', color: colors.textPrimary, fontSize: 14 }}
+                        >
+                          {formatCurrency(bill.required)}
+                        </td>
+                        <td
+                          style={{
+                            padding: '12px 4px',
+                            color: colors.success,
+                            fontWeight: 600,
+                            fontSize: 14,
+                          }}
+                        >
+                          {formatCurrency(bill.allocated)}
+                        </td>
+                        <td
+                          style={{
+                            padding: '12px 4px',
+                            color: bill.remaining > 0 ? colors.textSecondary : colors.success,
+                            fontSize: 14,
+                          }}
+                        >
+                          {bill.remaining > 0 ? formatCurrency(bill.remaining) : '✓ Ready!'}
+                        </td>
                       </tr>
                     );
                   })}
